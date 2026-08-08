@@ -131,7 +131,8 @@ summary: Что такое Живица и чем за неё платят.
 **Netlify** (рекомендуется): настройки в `netlify.toml`, команда `node build.mjs`,
 каталог `dist`. Кнопка Deploy выше подставляет репозиторий сама.
 
-**GitHub Pages**: `.github/workflows/deploy.yml`, включается в
+**GitHub Pages**: готовый workflow лежит в `tools/github-pages-workflow.yml` —
+скопируйте его в `.github/workflows/deploy.yml` и включите
 Settings → Pages → Source → GitHub Actions. Панель `/admin/` там тоже работает —
 Sveltia использует собственный OAuth-клиент.
 

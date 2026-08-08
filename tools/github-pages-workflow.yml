@@ -1,0 +1,61 @@
+# ═══════════════════════════════════════════════════════════════════
+#  ЭТОТ ФАЙЛ НУЖЕН, ТОЛЬКО ЕСЛИ ВЫ ЗАХОТИТЕ РАЗМЕСТИТЬ САЙТ
+#  НА GITHUB PAGES ВМЕСТО NETLIFY.
+#
+#  Что сделать:
+#  1. Создайте в репозитории папку .github/workflows/
+#  2. Скопируйте туда этот файл под именем deploy.yml
+#  3. Settings → Pages → Source → GitHub Actions
+#
+#  Для Netlify он не нужен — там всё настраивается файлом netlify.toml.
+# ═══════════════════════════════════════════════════════════════════
+
+# Автоматическая публикация сайта на GitHub Pages.
+# Нужен, только если вы решите размещать сайт на GitHub Pages, а не на Netlify.
+# Включается один раз: Settings → Pages → Source → GitHub Actions.
+
+name: Публикация сайта
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0        # полная история — чтобы даты «Обновлено» были настоящими
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Собрать сайт
+        run: node build.mjs
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
