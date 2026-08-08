@@ -3,8 +3,6 @@
 Статический сайт: тексты в Markdown, оформление отдельно, публикация автоматическая.
 **Зависимостей нет** — нужен только Node.js 18+. Никаких `npm install`.
 
-[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/32131231231sdwa/Ercyon-site)
-
 - Публикация за три шага: **[БЫСТРЫЙ-СТАРТ.md](./БЫСТРЫЙ-СТАРТ.md)**
 - Как править текст без программиста: **[КАК-ПРАВИТЬ-САЙТ.md](./КАК-ПРАВИТЬ-САЙТ.md)**
 
@@ -129,7 +127,17 @@ summary: Что такое Живица и чем за неё платят.
 ## Публикация
 
 **Netlify** (рекомендуется): настройки в `netlify.toml`, команда `node build.mjs`,
-каталог `dist`. Кнопка Deploy выше подставляет репозиторий сама.
+каталог `dist`.
+
+> ⚠️ Подключайте через **Add new project → Import an existing project**.
+> Кнопку «Deploy to Netlify» использовать НЕЛЬЗЯ: она не подключает ваш
+> репозиторий, а создаёт его копию со случайным именем и собирает сайт из неё.
+> Тогда панель редактора пишет правки в один репозиторий, а сайт строится
+> из другого — и правки не появляются.
+
+После первого деплоя проверьте **Project configuration → General → Visitor
+access → Project visibility → Public**. Новые проекты Netlify по умолчанию
+приватные: без этого сайт видите только вы, а посетители получают окно входа.
 
 **GitHub Pages**: готовый workflow лежит в `tools/github-pages-workflow.yml` —
 скопируйте его в `.github/workflows/deploy.yml` и включите
