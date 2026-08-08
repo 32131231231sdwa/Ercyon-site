@@ -1,0 +1,419 @@
+# ═══════════════════════════════════════════════════════════════════
+#  ПАНЕЛЬ РЕДАКТОРА
+#  Открывается по адресу  ваш-сайт/admin/
+#
+#  Здесь описано, какие разделы видит редактор и какие у них поля.
+#  Обычно этот файл трогать не нужно.
+#  Один и тот же файл читают обе панели: /admin/ и /admin-classic/.
+# ═══════════════════════════════════════════════════════════════════
+
+backend:
+  name: github
+  repo: 32131231231sdwa/Ercyon-site
+  branch: main
+  commit_messages:
+    create: 'Добавлено: {{collection}} «{{slug}}»'
+    update: 'Правка: {{collection}} «{{slug}}»'
+    delete: 'Удалено: {{collection}} «{{slug}}»'
+    uploadMedia: 'Загружен файл: {{path}}'
+    deleteMedia: 'Удалён файл: {{path}}'
+
+locale: ru
+media_folder: static/img/uploads
+public_folder: /img/uploads
+media_library:
+  max_file_size: 6000000
+
+slug:
+  encoding: ascii
+  clean_accents: true
+
+# Значки разделов. Эмодзи — только подсказка, на сайте рисуется
+# нарисованная от руки иконка. Как выглядит каждая — /admin/icons.html
+# (Этот список повторяется в поле «Значок» ниже.)
+
+collections:
+
+  # ─────────────────────────── НАСТРОЙКИ ───────────────────────────
+  - name: settings
+    label: Настройки
+    label_singular: настройку
+    description: Название, девиз, ссылка на Telegram, статус сезона, разделы меню и все подписи.
+    files:
+      - name: site
+        label: Основные настройки сайта
+        file: content/settings.yml
+        description: Название, девиз, сезон, ссылка на группу, список разделов меню.
+        fields:
+          - { name: site_title, label: Название проекта, widget: string,
+              hint: 'Крупная надпись в шапке и на главной' }
+          - { name: site_subtitle, label: Подзаголовок, widget: string, required: false }
+          - { name: motto, label: Девиз, widget: string }
+          - { name: description, label: Описание проекта, widget: text,
+              hint: 'Одно-два предложения. Видно в поиске Google и при отправке ссылки в чат.' }
+          - { name: telegram_url, label: Ссылка на Telegram, widget: string }
+          - { name: telegram_label, label: Надпись на кнопке, widget: string, default: В группу }
+          - { name: site_url, label: Адрес сайта, widget: string,
+              hint: 'Например https://ercyon.netlify.app — без косой черты в конце' }
+
+          - name: season
+            label: Статус сезона
+            widget: object
+            collapsed: false
+            fields:
+              - { name: number, label: Номер сезона, widget: number, value_type: int }
+              - { name: title, label: Название сезона, widget: string, required: false }
+              - { name: year, label: Год в мире, widget: string, hint: 'Например: 417 год Второй Эпохи' }
+              - { name: mode, label: Режим набора, widget: string, hint: 'Например: Открытый набор' }
+              - name: state
+                label: Состояние
+                widget: select
+                options:
+                  - { label: Идёт, value: idet }
+                  - { label: Набор, value: nabor }
+                  - { label: Пауза, value: pauza }
+                  - { label: Завершён, value: zavershen }
+              - { name: state_label, label: Подпись состояния, widget: string,
+                  hint: 'Как это слово напишется на сайте' }
+              - { name: note, label: Примечание, widget: text, required: false,
+                  hint: 'Одна строка под статусом на главной' }
+
+          - name: categories
+            label: Разделы меню
+            label_singular: раздел
+            widget: list
+            summary: '{{fields.title}}'
+            hint: 'Порядок разделов в меню = порядок в этом списке, его можно перетаскивать. Удалили раздел — страницы из него не пропадут, а соберутся в раздел «Прочее».'
+            fields:
+              - { name: id, label: Служебное имя (латиницей), widget: string,
+                  pattern: ['^[a-z0-9-]+$', 'Только латиница, цифры и дефис'],
+                  hint: 'Часть адреса: lore → /lore/. У существующего раздела менять не стоит.' }
+              - { name: title, label: Название, widget: string }
+              - name: icon
+                label: Значок
+                widget: select
+                default: leaf
+                hint: 'Как выглядит каждый значок — откройте /admin/icons.html'
+                options:
+                  - { label: 🌿 Лист,         value: leaf }
+                  - { label: 🌳 Дуб,          value: oak }
+                  - { label: 🌱 Папоротник,   value: fern }
+                  - { label: 🥀 Терн,         value: thorn }
+                  - { label: 👑 Корона,       value: crown }
+                  - { label: ⚔️ Меч,          value: sword }
+                  - { label: 🛡️ Щит,          value: shield }
+                  - { label: 🚩 Знамя,        value: banner }
+                  - { label: 🏰 Замок,        value: castle }
+                  - { label: 🗼 Башня,        value: tower }
+                  - { label: ⛩️ Врата,        value: gate }
+                  - { label: 🌉 Мост,         value: bridge }
+                  - { label: 📜 Свиток,       value: scroll }
+                  - { label: 📖 Книга,        value: book }
+                  - { label: 🖋️ Перо,         value: quill }
+                  - { label: 🔴 Печать,       value: seal }
+                  - { label: 🗝️ Ключ,         value: key }
+                  - { label: 🪙 Монета,       value: coin }
+                  - { label: ⚖️ Весы,         value: scales }
+                  - { label: ⚒️ Наковальня,   value: anvil }
+                  - { label: 🔨 Молот,        value: hammer }
+                  - { label: ⚙️ Шестерня,     value: gear }
+                  - { label: 🧭 Компас,       value: compass }
+                  - { label: 🗺️ Карта,        value: map }
+                  - { label: ⛵ Корабль,      value: ship }
+                  - { label: ⛰️ Гора,         value: mountain }
+                  - { label: 🌙 Луна,         value: moon }
+                  - { label: ☀️ Солнце,       value: sun }
+                  - { label: ⭐ Звезда,       value: star }
+                  - { label: 🔥 Пламя,        value: flame }
+                  - { label: 💧 Капля,        value: drop }
+                  - { label: 🐺 Волк,         value: wolf }
+                  - { label: 🐦 Ворон,        value: raven }
+              - { name: intro, label: Описание раздела, widget: text, required: false,
+                  hint: 'Строчка под названием на карточке и в обзоре раздела' }
+
+          - { name: footer_note, label: Подпись внизу сайта, widget: text, required: false }
+
+      # ── Подписи интерфейса ──────────────────────────────────────
+      - name: labels
+        label: Подписи интерфейса
+        file: content/labels.yml
+        description: Все надписи сайта, которые не являются текстом страниц — кнопки, заголовки списков, названия полей в досье.
+        fields:
+          - name: labels
+            label: Подписи
+            widget: object
+            fields:
+
+              - name: nav
+                label: Меню, шапка, подвал
+                widget: object
+                collapsed: true
+                fields:
+                  - { name: overview, label: Обзор раздела, widget: string }
+                  - { name: home, label: Главная, widget: string }
+                  - { name: season_word, label: Слово «Сезон», widget: string }
+                  - { name: search_button, label: Кнопка поиска, widget: string }
+                  - { name: search_placeholder, label: Подсказка в поле поиска, widget: string }
+                  - { name: search_hint, label: Пояснение под поиском, widget: text }
+                  - { name: search_nothing, label: Ничего не найдено, widget: text,
+                      hint: 'Вместо {q} подставится то, что искали' }
+                  - { name: toc_head, label: Заголовок оглавления, widget: string }
+                  - { name: updated, label: Подпись «Обновлено», widget: string }
+                  - { name: foot_home, label: 'Подвал: главная', widget: string }
+                  - { name: foot_search, label: 'Подвал: поиск', widget: string }
+                  - { name: foot_admin, label: 'Подвал: панель', widget: string }
+
+              - name: home
+                label: Главная страница
+                widget: object
+                collapsed: true
+                fields:
+                  - { name: join_button, label: Кнопка «Как вступить», widget: string }
+                  - { name: status_year, label: 'Статус: год', widget: string }
+                  - { name: status_state, label: 'Статус: состояние', widget: string }
+                  - { name: status_mode, label: 'Статус: набор', widget: string }
+                  - { name: news_title, label: Заголовок ленты новостей, widget: string }
+                  - { name: news_all, label: Ссылка «Все новости», widget: string }
+                  - { name: news_empty, label: Когда новостей нет, widget: text }
+
+              - name: countries
+                label: Страны
+                widget: object
+                collapsed: true
+                fields:
+                  - { name: index_title, label: Заголовок каталога, widget: string }
+                  - { name: index_note, label: Пояснение под заголовком, widget: text }
+                  - { name: index_menu_note, label: Описание в меню, widget: text }
+                  - { name: empty, label: Когда стран нет, widget: text }
+                  - { name: cta, label: Кнопка «Основать страну», widget: string }
+                  - { name: treaties_title, label: Заголовок списка договоров, widget: string }
+                  - { name: status_active, label: 'Состояние: действует', widget: string }
+                  - { name: status_neutral, label: 'Состояние: нейтралитет', widget: string }
+                  - { name: status_fallen, label: 'Состояние: пала', widget: string }
+                  - { name: f_government, label: 'Поле: правление', widget: string }
+                  - { name: f_ruler, label: 'Поле: правитель', widget: string }
+                  - { name: f_capital, label: 'Поле: столица', widget: string }
+                  - { name: f_founded, label: 'Поле: основана', widget: string }
+                  - { name: f_population, label: 'Поле: население', widget: string }
+                  - { name: f_magic, label: 'Поле: магия', widget: string }
+                  - { name: f_player, label: 'Поле: игрок', widget: string }
+                  - { name: f_resources, label: 'Поле: ресурсы', widget: string }
+
+              - name: treaties
+                label: Договоры
+                widget: object
+                collapsed: true
+                fields:
+                  - { name: index_title, label: Заголовок реестра, widget: string }
+                  - { name: index_note, label: Пояснение под заголовком, widget: text }
+                  - { name: index_menu_note, label: Описание в меню, widget: text }
+                  - { name: empty, label: Когда договоров нет, widget: text }
+                  - { name: date_prefix, label: Подпись перед датой, widget: string }
+                  - { name: parties, label: Заголовок «Стороны», widget: string }
+                  - { name: status_active, label: 'Состояние: в силе', widget: string }
+                  - { name: status_broken, label: 'Состояние: нарушен', widget: string }
+                  - { name: status_expired, label: 'Состояние: истёк', widget: string }
+
+              - name: news
+                label: Новости
+                widget: object
+                collapsed: true
+                fields:
+                  - { name: index_title, label: Заголовок списка, widget: string }
+                  - { name: index_note, label: Пояснение под заголовком, widget: text }
+                  - { name: index_menu_note, label: Описание в меню, widget: text }
+                  - { name: empty, label: Когда новостей нет, widget: text }
+                  - { name: press_badge, label: Метка «Газета игроков», widget: string }
+                  - { name: back, label: Ссылка назад, widget: string }
+                  - { name: default_author, label: Автор по умолчанию, widget: string }
+                  - { name: rss_title, label: Название RSS-ленты, widget: string }
+
+              - name: search
+                label: Страница поиска
+                widget: object
+                collapsed: true
+                fields:
+                  - { name: page_title, label: Заголовок, widget: string }
+                  - { name: page_note, label: Пояснение, widget: text }
+                  - { name: page_placeholder, label: Подсказка в поле, widget: string }
+
+              - name: notfound
+                label: Страница не найдена
+                widget: object
+                collapsed: true
+                fields:
+                  - { name: title, label: Заголовок, widget: string }
+                  - { name: note, label: Пояснение, widget: text }
+                  - { name: home, label: Кнопка на главную, widget: string }
+                  - { name: search, label: Кнопка поиска, widget: string }
+
+              - name: callouts
+                label: Заголовки врезок
+                widget: object
+                collapsed: true
+                fields:
+                  - { name: seal, label: 'Врезка seal (с печатью)', widget: string }
+                  - { name: note, label: 'Врезка note (заметка)', widget: string }
+                  - { name: warn, label: 'Врезка warn (внимание)', widget: string }
+                  - { name: quote, label: 'Врезка quote (цитата)', widget: string }
+
+              - name: misc
+                label: Прочее
+                widget: object
+                collapsed: true
+                fields:
+                  - { name: orphan_category, label: Раздел для страниц без раздела, widget: string }
+
+      # ── Главная ─────────────────────────────────────────────────
+      - name: home
+        label: Главная страница
+        file: content/home.md
+        description: Текст на главной — под девизом и под карточками разделов.
+        fields:
+          - { name: title, label: Служебный заголовок, widget: hidden, default: Главная }
+          - { name: intro_title, label: Заголовок над карточками, widget: string, required: false }
+          - { name: intro_text, label: Вступление под девизом, widget: text,
+              hint: 'Два-три предложения. Это первое, что читает новый игрок.' }
+          - { name: body, label: Текст внизу главной, widget: markdown, required: false }
+
+  # ─────────────────────────── СТРАНИЦЫ ───────────────────────────
+  - name: pages
+    label: Страницы
+    label_singular: страницу
+    description: Все обычные разделы вики — правила, лор, магия, механики, карты.
+    folder: content/pages
+    create: true
+    slug: '{{fields.slug}}'
+    identifier_field: title
+    summary: '{{title}}  ·  {{category}}'
+    sortable_fields: [title, order]
+    fields:
+      - { name: title, label: Заголовок, widget: string }
+      - name: category
+        label: Раздел меню
+        widget: relation
+        collection: settings
+        file: site
+        search_fields: ['categories.*.title', 'categories.*.id']
+        display_fields: ['categories.*.title']
+        value_field: 'categories.*.id'
+        hint: 'Список берётся из «Настройки → Разделы меню» — добавили там раздел, он сразу появится здесь'
+      - { name: order, label: Порядок в меню, widget: number, value_type: int, default: 100,
+          hint: 'Чем меньше число, тем выше страница в списке' }
+      - { name: slug, label: Адрес страницы, widget: string,
+          pattern: ['^[a-z0-9-]+$', 'Только латиница, цифры и дефис'],
+          hint: 'Латиницей. Например magic → /lore/magic/' }
+      - { name: summary, label: Короткое описание, widget: text, required: false,
+          hint: 'Одно предложение — видно в карточках раздела и в поиске' }
+      - { name: body, label: Текст страницы, widget: markdown }
+
+  # ─────────────────────────── СТРАНЫ ───────────────────────────
+  - name: countries
+    label: Страны
+    label_singular: страну
+    description: Досье держав. Каждая страна — отдельная карточка.
+    folder: content/countries
+    create: true
+    slug: '{{fields.slug}}'
+    identifier_field: title
+    summary: '{{title}}  ·  {{ruler}}'
+    sortable_fields: [title, order]
+    fields:
+      - { name: title, label: Название страны, widget: string }
+      - { name: slug, label: Адрес, widget: string,
+          pattern: ['^[a-z0-9-]+$', 'Только латиница, цифры и дефис'] }
+      - { name: order, label: Порядок в списке, widget: number, value_type: int, default: 100 }
+      - { name: ruler, label: Правитель, widget: string, required: false }
+      - { name: government, label: Форма правления, widget: string, required: false }
+      - { name: capital, label: Столица, widget: string, required: false }
+      - { name: founded, label: Год основания, widget: string, required: false }
+      - { name: population, label: Население, widget: string, required: false }
+      - { name: resources, label: Ресурсы, widget: list, required: false, allow_add: true,
+          field: { name: item, label: Ресурс, widget: string } }
+      - { name: magic, label: Школы Живицы, widget: string, required: false }
+      - name: status
+        label: Состояние
+        widget: select
+        default: active
+        options:
+          - { label: Действует, value: active }
+          - { label: Нейтралитет, value: neutral }
+          - { label: Пала, value: fallen }
+      - name: color
+        label: Геральдический цвет
+        widget: select
+        default: '#3E6B4F'
+        hint: 'Цвет полоски и флажка в списке стран'
+        options:
+          - { label: 🟩 Мох,              value: '#3E6B4F' }
+          - { label: 🌲 Тёмный лес,       value: '#14352A' }
+          - { label: 🌿 Полынь,           value: '#5A7D5A' }
+          - { label: 🟥 Бордо,            value: '#6B3A3F' }
+          - { label: 🧱 Кирпич,           value: '#7C302B' }
+          - { label: 🟨 Охра,             value: '#8A6B33' }
+          - { label: 🥇 Старое золото,    value: '#B08D4A' }
+          - { label: 🟦 Стальная синь,    value: '#4A6076' }
+          - { label: ⬛ Сланец,           value: '#3F4A52' }
+          - { label: 🟫 Бурый камень,     value: '#4B4740' }
+          - { label: 🟪 Вересковый,       value: '#6B4A6B' }
+          - { label: 🌊 Морская волна,    value: '#2F5D62' }
+      - { name: player, label: Игрок, widget: string, required: false, default: Свободно }
+      - { name: summary, label: Короткое описание, widget: text, required: false }
+      - { name: body, label: Досье, widget: markdown,
+          hint: 'Разделы делайте заголовками: ## Правление, ## Земли, ## Хроника' }
+
+  # ─────────────────────────── НОВОСТИ ───────────────────────────
+  - name: news
+    label: Новости
+    label_singular: новость
+    description: Мировые вести и газеты игроков. Свежие показываются на главной.
+    folder: content/news
+    create: true
+    slug: '{{year}}-{{month}}-{{day}}-{{slug}}'
+    identifier_field: title
+    summary: '{{date | date("DD.MM.YYYY")}} — {{title}}'
+    sortable_fields: [date, title]
+    fields:
+      - { name: title, label: Заголовок, widget: string }
+      - { name: date, label: Дата, widget: datetime, date_format: 'DD.MM.YYYY', time_format: false,
+          format: 'YYYY-MM-DD' }
+      - { name: author, label: Автор, widget: string, default: Хронист }
+      - name: kind
+        label: Тип
+        widget: select
+        default: world
+        options:
+          - { label: Мировая новость, value: world }
+          - { label: Газета игроков, value: press }
+      - { name: summary, label: Короткое описание, widget: text, required: false }
+      - { name: body, label: Текст новости, widget: markdown }
+
+  # ─────────────────────────── ДОГОВОРЫ ───────────────────────────
+  - name: treaties
+    label: Договоры
+    label_singular: договор
+    description: Реестр пактов и союзов.
+    folder: content/treaties
+    create: true
+    slug: '{{fields.slug}}'
+    identifier_field: title
+    summary: '{{title}}'
+    fields:
+      - { name: title, label: Название договора, widget: string }
+      - { name: slug, label: Адрес, widget: string,
+          pattern: ['^[a-z0-9-]+$', 'Только латиница, цифры и дефис'] }
+      - { name: date, label: Когда заключён, widget: string, required: false,
+          hint: 'Игровая дата, например: 414 ВЭ' }
+      - { name: parties, label: Стороны, widget: list, required: false, allow_add: true,
+          hint: 'Пишите названия стран точно так же, как в разделе «Страны» — тогда появятся ссылки',
+          field: { name: item, label: Сторона, widget: string } }
+      - name: status
+        label: Состояние
+        widget: select
+        default: active
+        options:
+          - { label: В силе, value: active }
+          - { label: Нарушен, value: broken }
+          - { label: Истёк, value: expired }
+      - { name: summary, label: Короткое описание, widget: text, required: false }
+      - { name: body, label: Текст договора, widget: markdown }

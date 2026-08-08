@@ -1,0 +1,55 @@
+/* Как выглядит окно предпросмотра справа в панели редактора.
+   Задача — чтобы редактор видел примерно то же, что увидит игрок. */
+
+body{
+  background:#F2EBD9;
+  background-image:url("/img/paper.webp");
+  background-size:320px;
+  background-blend-mode:multiply;
+  color:#2B3225;
+  font-family:"PT Serif",Georgia,serif;
+  font-size:17px;
+  line-height:1.72;
+  padding:1.75rem 1.5rem 3rem;
+  max-width:44rem;
+  margin:0 auto;
+}
+
+h1,h2,h3{ font-family:"Cormorant","PT Serif",Georgia,serif; color:#14352A; line-height:1.15; }
+h1{ font-size:2.4rem; font-weight:700; margin:.2em 0 .5em; }
+h2{ font-size:1.85rem; font-weight:700; margin:1.6em 0 .5em; padding-bottom:.2rem; border-bottom:1px solid #D8CBAC; }
+h3{ font-size:1.4rem; font-weight:600; color:#1C4535; margin:1.4em 0 .4em; }
+
+p{ margin:0 0 1.1em; }
+a{ color:#3E6B4F; text-underline-offset:.18em; }
+strong{ color:#14352A; }
+ul,ol{ padding-left:1.3em; }
+li::marker{ color:#B08D4A; }
+hr{ border:0; height:1px; background:#D8CBAC; margin:2em 0; }
+
+blockquote{
+  margin:1.4em 0; padding:.2rem 0 .2rem 1rem;
+  border-left:3px solid #B08D4A; color:#55604C; font-style:italic;
+}
+
+code{
+  font-family:ui-monospace,Menlo,Consolas,monospace; font-size:.88em;
+  background:rgba(62,107,79,.1); border:1px solid rgba(62,107,79,.18);
+  border-radius:4px; padding:.08em .35em;
+}
+pre{
+  background:#0D2119; color:#DCE7D8; padding:1rem; border-radius:6px;
+  overflow-x:auto; border:1px solid rgba(176,141,74,.25);
+}
+pre code{ background:none; border:0; padding:0; color:inherit; }
+
+table{ border-collapse:collapse; width:100%; margin:1.4em 0; font-size:.96rem; }
+th,td{ padding:.55rem .7rem; text-align:left; border-bottom:1px solid #D8CBAC; }
+thead th{
+  background:rgba(62,107,79,.12); color:#14352A;
+  font-family:"Cormorant",Georgia,serif; font-size:1.05rem; font-weight:700;
+  border-bottom:2px solid #B08D4A;
+}
+tbody tr:nth-child(even){ background:rgba(216,203,172,.22); }
+
+img{ max-width:100%; border-radius:6px; border:1px solid #D8CBAC; }

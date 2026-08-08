@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Панель редактора (старая) — Ercyon</title>
+  <link rel="icon" href="/img/favicon-32.png" type="image/png">
+
+  <!-- Читаем тот же файл настроек, что и основная панель -->
+  <link href="/admin/config.yml" type="text/yaml" rel="cms-config-url">
+
+  <style>
+    body{margin:0;background:#0D2119}
+    #loading{
+      position:fixed;inset:0;display:grid;place-content:center;justify-items:center;gap:1rem;
+      color:#E9E2CD;font:400 1rem/1.5 Georgia,serif;text-align:center;padding:2rem
+    }
+    #loading img{width:88px;height:88px;border-radius:50%;opacity:.9}
+    #loading b{font-weight:400;letter-spacing:.18em;text-transform:uppercase;font-size:.8rem;color:#B08D4A}
+    #loading small{color:#A9BCA9;max-width:24rem;display:block}
+  </style>
+</head>
+<body>
+  <div id="loading">
+    <img src="/img/logo-128.webp" alt="">
+    <b>Ercyon</b>
+    <span>Запасная панель редактора</span>
+    <small>Основная панель — по адресу <b style="letter-spacing:0;text-transform:none;font-size:1rem">/admin/</b>.
+      Эта нужна, только если с основной что-то не так. Для входа сюда в Netlify
+      должен быть настроен вход через GitHub (Access control → OAuth).</small>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/decap-cms@3.15.1/dist/decap-cms.js"></script>
+
+  <script>
+    window.addEventListener('load', function () {
+      setTimeout(function () {
+        var l = document.getElementById('loading');
+        if (l) l.style.display = 'none';
+      }, 1500);
+    });
+
+    // Предпросмотр оформляем как сам сайт
+    if (window.CMS) {
+      try {
+        CMS.registerPreviewStyle('/css/fonts.css');
+        CMS.registerPreviewStyle('/css/site.css');
+        CMS.registerPreviewStyle('/admin/preview.css');
+      } catch (e) { /* не критично */ }
+    }
+  </script>
+</body>
+</html>

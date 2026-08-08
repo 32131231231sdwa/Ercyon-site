@@ -1,0 +1,15 @@
+{
+  "name": "ercyon-site",
+  "version": "1.1.0",
+  "private": true,
+  "description": "Сайт-вики ролевого проекта Ercyon. Без зависимостей: нужен только Node.js.",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "start": "node build.mjs --serve",
+    "preview": "node build.mjs && node tools/make_preview.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

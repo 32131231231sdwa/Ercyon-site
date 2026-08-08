@@ -1,0 +1,10 @@
+# готовый сайт — собирается автоматически, в репозитории не нужен
+dist/
+preview.html
+
+# служебное
+node_modules/
+.DS_Store
+Thumbs.db
+*.log
+.netlify/
