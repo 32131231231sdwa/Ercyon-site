@@ -14,10 +14,6 @@ season:
   state_label: Подготовка
   note: Идёт работа по составлению сеттинга и механик
 categories:
-  - id: base
-    title: База
-    icon: seal
-    intro: С чего начать, как всё устроено и по каким правилам живёт мир.
   - id: lore
     title: Сеттинг
     icon: leaf
