@@ -18,18 +18,10 @@ categories:
     title: Сеттинг
     icon: leaf
     intro: История Эрциона, магия, народы и те, кто вершит судьбы.
-  - id: maps
-    title: Карты
-    icon: map
-    intro: 'Как выглядит мир: границы, земли и то, что под ними.'
   - id: mechanics
     title: Механики
     icon: scales
     intro: Правила экспансии, торговли, войн и исследований.
-  - id: news
-    title: Новости и пресса
-    icon: quill
-    intro: Что происходит в мире прямо сейчас и что пишут игроки.
   - id: season
     title: Сезон
     icon: crown
