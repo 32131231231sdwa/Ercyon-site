@@ -1,5 +1,5 @@
 ---
-title: Душа
+title: I. Душа
 category: lore
 order: 1
 slug: soul
