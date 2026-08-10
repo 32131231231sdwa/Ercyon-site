@@ -23,6 +23,9 @@ const ROOT = path.dirname(url.fileURLToPath(import.meta.url));
 const CONTENT = path.join(ROOT, 'content');
 const STATIC = path.join(ROOT, 'static');
 const DIST = path.join(ROOT, 'dist');
+// База для GitHub Pages: сайт живёт в подпапке /Ercyon-site/.
+// Задаётся переменной BASE_PATH при сборке (workflow). Локально пусто → корень.
+const BASE = (process.env.BASE_PATH || '').replace(/\/+$/, '');
 
 const log = (...a) => console.log(...a);
 
@@ -449,6 +452,9 @@ function build() {
   // сырой контент кладём рядом — пригодится для предпросмотра и резервной копии
   copyDir(CONTENT, path.join(DIST, 'content'));
 
+  // Если сайт в подпапке — переписываем все корневые ссылки на /Ercyon-site/...
+  applyBasePath(DIST, BASE);
+
   if (orphans.length) {
     log(`\n  ⚠ Страницы без раздела — сложены в «${L('misc.orphan_category', 'Прочее')}»:`);
     orphans.forEach(o => log(`     ${o}`));
@@ -523,6 +529,35 @@ function unpackAssets() {
     }
   }
   if (!n) console.warn('  ⚠ В assets/ нет ни шрифтов, ни картинок — сайт будет без оформления');
+}
+
+function applyBasePath(dist, base) {
+  if (!base) return;
+  const all = d => fs.readdirSync(d, { withFileTypes: true }).flatMap(e => {
+    const p = path.join(d, e.name);
+    return e.isDirectory() ? all(p) : [p];
+  });
+  let n = 0;
+  for (const f of all(dist)) {
+    const ext = path.extname(f).toLowerCase();
+    if (ext === '.html') {
+      let h = fs.readFileSync(f, 'utf8');
+      h = h.replace(/(\s(?:href|src))="\/(?!\/)/g, `$1="${base}/`);
+      h = h.replace(/(\ssrcset)="\/(?!\/)/g, `$1="${base}/`);
+      h = h.replace(/(content="\s*\d+\s*;\s*url=)\/(?!\/)/g, `$1${base}/`);
+      fs.writeFileSync(f, h, 'utf8'); n++;
+    } else if (ext === '.css') {
+      let c = fs.readFileSync(f, 'utf8');
+      c = c.replace(/url\((['"]?)\/(?!\/)/g, `url($1${base}/`);
+      fs.writeFileSync(f, c, 'utf8'); n++;
+    } else if (ext === '.webmanifest') {
+      let m = fs.readFileSync(f, 'utf8');
+      m = m.replace(/"\/(img|css|js|fonts)\//g, `"${base}/$1/`);
+      m = m.replace(/("start_url":\s*")\/(?!\/)/g, `$1${base}/`);
+      fs.writeFileSync(f, m, 'utf8'); n++;
+    }
+  }
+  log(`  → база /Ercyon-site применена к ${n} файлам`);
 }
 
 function copyDir(src, dst) {

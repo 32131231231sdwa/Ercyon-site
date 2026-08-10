@@ -20,6 +20,8 @@ const VINE = '<svg viewBox="0 0 60 300" preserveAspectRatio="none"><use href="#d
 export const icon = (id, cls = 'ico') =>
   `<svg class="${cls}" aria-hidden="true"><use href="#${id}"/></svg>`;
 
+const BASE = (process.env.BASE_PATH || '').replace(/\/+$/, '');
+
 const STATE_CLASS = { idet: 'is-live', nabor: 'is-open', pauza: 'is-paused', zavershen: 'is-done' };
 
 /* ─────────────────────────── меню ─────────────────────────── */
@@ -216,7 +218,7 @@ ${SPRITE}
   </div>
 </div>
 
-<script>window.__L = ${JSON.stringify(jsLabels)};</script>
+<script>window.__BASE__ = ${JSON.stringify(BASE)}; window.__L = ${JSON.stringify(jsLabels)};</script>
 <script src="/js/app.js" defer></script>
 </body>
 </html>`;

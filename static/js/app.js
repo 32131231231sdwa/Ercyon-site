@@ -77,7 +77,7 @@ window.ercionInit = () => {
   const loadIndex = () => {
     if (index) return Promise.resolve(index);
     if (window.__SEARCH_INDEX__) { index = prepare(window.__SEARCH_INDEX__); return Promise.resolve(index); }
-    if (!loading) loading = fetch('/search-index.json')
+    if (!loading) loading = fetch((window.__BASE__ || '') + '/search-index.json')
       .then(r => r.json())
       .then(data => (index = prepare(data)))
       .catch(() => (index = []));
@@ -161,7 +161,7 @@ window.ercionInit = () => {
       return;
     }
     box.innerHTML = hits.map((d, i) => `
-      <a class="fres${i === 0 ? ' is-sel' : ''}" href="${d.u}">
+      <a class="fres${i === 0 ? ' is-sel' : ''}" href="${(window.__BASE__||'')+d.u}">
         <span class="fres__cat">${escHtml(d.c || '')}</span>
         <span class="fres__title">${mark(d.t, tokens)}</span>
         <span class="fres__snip">${mark(snippet(d, tokens), tokens)}</span>
