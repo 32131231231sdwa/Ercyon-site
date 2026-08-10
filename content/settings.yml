@@ -10,26 +10,22 @@ season:
   title: «The Chasm Abyss»
   year: 1600-е
   mode: Открытый набор
-  state: nabor
+  state: pauza
   state_label: Подготовка
   note: Идёт работа по составлению сеттинга и механик
 categories:
   - id: base
-    title: Базовое
+    title: База
     icon: seal
     intro: С чего начать, как всё устроено и по каким правилам живёт мир.
   - id: lore
-    title: Лор
+    title: Сеттинг
     icon: leaf
     intro: История Эрциона, магия, народы и те, кто вершит судьбы.
   - id: maps
     title: Карты
     icon: map
     intro: 'Как выглядит мир: границы, земли и то, что под ними.'
-  - id: countries
-    title: Страны
-    icon: banner
-    intro: Досье держав, порядок вступления и реестр договоров.
   - id: mechanics
     title: Механики
     icon: scales
@@ -42,4 +38,4 @@ categories:
     title: Сезон
     icon: crown
     intro: Итоги, номинации и те, чьи имена остались в хронике.
-footer_note: Эрцион — некоммерческий ролевой проект. Все земли, дома и имена вымышлены.
+footer_note: Эрцион — некоммерческий ролевой проект. Все составляющие и производные сюжета вымышлены.
