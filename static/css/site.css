@@ -531,21 +531,26 @@ body.nav-open .scrim{ opacity:1; }
 /* страны */
 .ccards{ display:grid; gap:.8rem; }
 .ccard{
-  display:flex; gap:.85rem; align-items:flex-start;
+  /* Флаг слева, текст справа, метка состояния — отдельной строкой под текстом.
+     Верхний ряд тянется (1fr), поэтому метка прижата к низу карточки и в ряду
+     из трёх держав все метки стоят на одной высоте. */
+  display:grid; grid-template-columns:auto minmax(0,1fr); grid-template-rows:1fr auto;
+  column-gap:.85rem; row-gap:.6rem;
   padding:1rem 1rem 1rem .85rem; text-decoration:none; color:inherit;
   border:1px solid var(--parch-e); border-left:4px solid var(--flag,var(--moss));
   border-radius:var(--radius); background:rgba(255,255,255,.42);
   transition:transform .16s,box-shadow .16s;
-  flex-wrap:wrap;
 }
 .ccard:hover{ transform:translateY(-2px); box-shadow:var(--shadow); }
+.ccard > .pill{ grid-area:2/2; justify-self:start; }
 .ccard__flag{
+  grid-area:1/1;
   width:1.6rem; height:2.1rem; flex:none; border-radius:2px 2px 0 0;
   background:linear-gradient(160deg,var(--flag,var(--moss)),rgba(0,0,0,.35));
   box-shadow:inset 0 0 0 1px rgba(0,0,0,.18),0 1px 3px rgba(0,0,0,.2);
   clip-path:polygon(0 0,100% 0,100% 100%,50% 84%,0 100%);
 }
-.ccard__main{ flex:1; min-width:11rem; display:grid; gap:.15rem; }
+.ccard__main{ grid-area:1/2; min-width:0; display:grid; gap:.15rem; align-content:start; }
 .ccard__title{ font-family:var(--display); font-size:1.4rem; font-weight:700; color:var(--deep); line-height:1.15; }
 .ccard__meta{ font-size:.82rem; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-3); }
 .ccard__sum{ font-size:.95rem; color:var(--ink-2); }
@@ -689,16 +694,18 @@ body.nav-open .scrim{ opacity:1; }
 @media (min-width:46rem){
   :root{ --pad:2rem; }
   body{ font-size:1.09375rem; }
-  .cards{ grid-template-columns:1fr 1fr; }
-  .tiles{ grid-template-columns:1fr 1fr; }
-  .ccards{ grid-template-columns:1fr 1fr; }
+  /* Колонки набираются по ширине листа: два ряда на планшете, три на широком
+     экране. Раньше было жёстко «две» — на ПК половина карточки пустовала. */
+  .cards{ grid-template-columns:repeat(auto-fill,minmax(17rem,1fr)); }
+  .tiles{ grid-template-columns:repeat(auto-fill,minmax(17rem,1fr)); }
+  .ccards{ grid-template-columns:repeat(auto-fill,minmax(21rem,1fr)); }
   .status{ padding:1.4rem 1.6rem 1.5rem; }
   .status__grid{ grid-template-columns:repeat(3,1fr); }
   .status__grid > div + div{ border-left:1px solid var(--parch-e); }
   .passport dl{ grid-template-columns:1fr 1fr; gap:1rem 1.5rem; }
   .hero{ padding:4rem 2rem 3.5rem; }
   .hero__logo{ width:10rem; height:10rem; }
-  .nlist{ grid-template-columns:1fr 1fr; }
+  .nlist{ grid-template-columns:repeat(auto-fill,minmax(19rem,1fr)); }
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -744,7 +751,7 @@ body.nav-open .scrim{ opacity:1; }
   .is-home .vine{ display:none; }
 
   .prose{ font-size:1.125rem; }
-  .cards{ grid-template-columns:1fr 1fr; gap:1rem; }
+  .cards{ gap:1rem; }
   .phead h1{ font-size:clamp(2.4rem,3.6vw,3.4rem); }
 }
 
@@ -752,7 +759,9 @@ body.nav-open .scrim{ opacity:1; }
    ШИРОКИЙ ЭКРАН ≥ 84rem — появляется оглавление справа
    ═══════════════════════════════════════════════════════════════ */
 @media (min-width:84rem){
-  .shell{ grid-template-columns:var(--rail) minmax(0,1fr) 15rem; }
+  /* Третья колонка нужна только там, где оглавление вправду есть.
+     Без :has() (главная, каталоги, короткие страницы) лист занимает всю ширину. */
+  .shell:has(.toc){ grid-template-columns:var(--rail) minmax(0,1fr) 15rem; }
   .toc{
     display:block; position:sticky; top:2rem;
     margin:2rem 1.5rem 0 0; padding-left:1.1rem;
@@ -771,7 +780,14 @@ body.nav-open .scrim{ opacity:1; }
   .toc a:hover{ color:var(--parch); }
   .toc a.is-active{ color:var(--gold-l); }
   .toc__l3 a{ padding-left:.85rem; font-size:.86rem; opacity:.85; }
-  .main{ margin-right:0; }
+  .shell:has(.toc) .main{ margin-right:0; }
+
+  /* Короткая статья без оглавления (новости, отдельные страницы лора):
+     лист не разъезжается на всю ширину, иначе текст липнет к левому краю,
+     а справа остаётся пустое поле в пол-листа. Ставим лист по центру поля. */
+  body:not(.is-home) .shell:not(:has(.toc)):has(.prose) .main{
+    max-width:54rem; margin-left:auto; margin-right:auto;
+  }
 }
 
 @media print{

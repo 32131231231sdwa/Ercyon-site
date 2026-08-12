@@ -233,12 +233,66 @@ function loadSettings() {
   return s;
 }
 
+/* ═════════════════════ страховка разделов ═════════════════════
+   Разделы, которые сайт знает «в лицо». Если такой раздел случайно удалили
+   из настроек (легко сделать в панели), а страницы с ним остались, раздел
+   восстанавливается сам: иначе половина сайта свалится в «Прочее», адреса
+   страниц поедут, а страны, договоры и новости пропадут из меню.
+   Это уже случалось — правка настроек трижды сносила по разделу. */
+const CATEGORY_FALLBACKS = {
+  base:      { title: 'База',             icon: 'seal',
+               intro: 'С чего начать, как всё устроено и по каким правилам живёт мир.' },
+  lore:      { title: 'Сеттинг',          icon: 'leaf',
+               intro: 'История Эрциона, магия, народы и те, кто вершит судьбы.' },
+  maps:      { title: 'Карты',            icon: 'map',
+               intro: 'Как выглядит мир: границы, земли и то, что под ними.' },
+  countries: { title: 'Страны',           icon: 'banner',
+               intro: 'Досье держав, порядок вступления и реестр договоров.' },
+  mechanics: { title: 'Механики',         icon: 'scales',
+               intro: 'Правила экспансии, торговли, войн и исследований.' },
+  news:      { title: 'Новости и пресса', icon: 'quill',
+               intro: 'Что происходит в мире прямо сейчас и что пишут игроки.' },
+  season:    { title: 'Сезон',            icon: 'crown',
+               intro: 'Итоги, номинации и те, чьи имена остались в хронике.' },
+};
+const CATEGORY_ORDER = Object.keys(CATEGORY_FALLBACKS);
+
+function ensureCategories(S, usedIds) {
+  const restored = [];
+  for (const id of usedIds) {
+    if (!CATEGORY_FALLBACKS[id]) continue;          // незнакомый id — страница уйдёт в «Прочее»
+    if (S.categories.some(c => c.id === id)) continue;
+    const pos = CATEGORY_ORDER.indexOf(id);
+    // Возвращаем раздел на его обычное место, чтобы меню не перетасовалось.
+    let at = S.categories.findIndex(c => {
+      const i = CATEGORY_ORDER.indexOf(c.id);
+      return i === -1 || i > pos;
+    });
+    if (at < 0) at = S.categories.length;
+    S.categories.splice(at, 0, { id, order: at, ...CATEGORY_FALLBACKS[id] });
+    restored.push(id);
+  }
+  return restored;
+}
+
 /* ═════════════════════════ сборка ═════════════════════════ */
 
 function build() {
   const t0 = Date.now();
   const S = loadSettings();
   L = makeL(S);
+
+  const pageFiles = readDir('pages').filter(x => !x.front.draft);
+  const countryFiles = readDir('countries').filter(x => !x.front.draft);
+  const treatyFiles = readDir('treaties').filter(x => !x.front.draft);
+  const newsFiles = readDir('news').filter(x => !x.front.draft);
+
+  /* Пропавшие разделы возвращаем до того, как начнём раскладывать страницы. */
+  const usedCats = new Set(pageFiles.map(x => x.front.category).filter(Boolean));
+  if (countryFiles.length || treatyFiles.length) usedCats.add('countries');
+  if (newsFiles.length) usedCats.add('news');
+  const restoredCats = ensureCategories(S, usedCats);
+
   const catById = Object.fromEntries(S.categories.map(c => [c.id, c]));
   const orphans = [];
   const docs = [];
@@ -246,8 +300,7 @@ function build() {
   const push = d => { docs.push(d); return d; };
 
   /* — обычные страницы — */
-  for (const { file, abs, front, body } of readDir('pages')) {
-    if (front.draft) continue;
+  for (const { file, abs, front, body } of pageFiles) {
     let cat = catById[front.category];
     if (!cat) {
       // Раздел удалили или переименовали. Страницу НЕ теряем: складываем
@@ -271,7 +324,7 @@ function build() {
   }
 
   /* — страны — */
-  const countries = readDir('countries').filter(x => !x.front.draft).map(({ abs, front, body }) => {
+  const countries = countryFiles.map(({ abs, front, body }) => {
     const slug = front.slug || slugify(front.title);
     const { html, toc } = polish(renderMarkdown(body));
     return {
@@ -283,7 +336,7 @@ function build() {
   countries.forEach(push);
 
   /* — договоры — */
-  const treaties = readDir('treaties').filter(x => !x.front.draft).map(({ abs, front, body }) => {
+  const treaties = treatyFiles.map(({ abs, front, body }) => {
     const slug = front.slug || slugify(front.title);
     const { html, toc } = polish(renderMarkdown(body));
     return {
@@ -295,7 +348,7 @@ function build() {
   treaties.forEach(push);
 
   /* — новости — */
-  const news = readDir('news').filter(x => !x.front.draft).map(({ file, abs, front, body }) => {
+  const news = newsFiles.map(({ file, abs, front, body }) => {
     const slug = front.slug || slugify(path.basename(file, '.md').replace(/^\d{4}-\d{2}-\d{2}-/, ''));
     const { html, toc } = polish(renderMarkdown(body));
     return {
@@ -426,10 +479,17 @@ function build() {
     + `  <title>${esc(L('news.rss_title', S.site_title + ' — новости'))}</title>\n  <link>${base}/news/</link>\n`
     + `  <description>${esc(S.description || '')}</description>\n${rssItems}\n</channel></rss>\n`, 'utf8');
 
-  /* — страховка от «/base/…» — старый адрес просто уводит на новый — */
+  /* — страховка от старых адресов: «/base/…» и «/other/…» уводят на новый — */
+  const aliasTo = new Map();
   for (const d of docs) {
-    if (d.kind !== 'page' || d.category?.id !== 'base') continue;
-    const alias = `/base/${d.slug}/`;
+    if (d.kind !== 'page') continue;
+    if (d.category?.id === 'base') aliasTo.set(`/base/${d.slug}/`, d);
+    // Пока раздел был удалён, страница жила по адресу /other/…: он уже
+    // разошёлся по ссылкам, поэтому оставляем переадресацию.
+    aliasTo.set(`/other/${d.slug}/`, d);
+  }
+  for (const [alias, d] of aliasTo) {
+    if (alias === d.url || docs.some(x => x.url === alias)) continue;
     write(alias, `<!doctype html><html lang="ru"><head><meta charset="utf-8">`
       + `<meta http-equiv="refresh" content="0; url=${d.url}">`
       + `<link rel="canonical" href="${d.url}"><title>${esc(d.title)}</title></head>`
@@ -454,6 +514,13 @@ function build() {
 
   // Если сайт в подпапке — переписываем все корневые ссылки на /Ercyon-site/...
   applyBasePath(DIST, BASE);
+
+  if (restoredCats.length) {
+    log(`\n  ⚠ В настройках не хватало разделов — вернули сами:`);
+    restoredCats.forEach(id => log(`     ${id} → «${CATEGORY_FALLBACKS[id].title}»`));
+    log('     (страницы этих разделов иначе свалились бы в «Прочее», а адреса поехали бы;');
+    log('      проверьте список разделов в настройках — похоже, раздел удалили случайно)');
+  }
 
   if (orphans.length) {
     log(`\n  ⚠ Страницы без раздела — сложены в «${L('misc.orphan_category', 'Прочее')}»:`);

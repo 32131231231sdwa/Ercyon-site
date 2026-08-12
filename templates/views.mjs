@@ -64,7 +64,7 @@ export function home(ctx, doc) {
     <h1 class="hero__title">${esc(S.site_title)}</h1>
     <p class="hero__motto">${esc(S.motto || '')}</p>
     <svg class="hero__rule" aria-hidden="true"><use href="#d-divider"/></svg>
-    <p class="hero__lede">${esc(f.intro_text || S.description || '')}</p>
+    <p class="hero__lede">${esc(f.intro_text || S.description || '').replace(/\r?\n/g, '<br>')}</p>
     <div class="hero__actions">
       <a class="btn btn--gold" href="${esc(S.telegram_url || '#')}" target="_blank" rel="noopener noreferrer">
         ${icon('i-telegram', 'ico')}<span>${esc(S.telegram_label || 'В группу')}</span></a>

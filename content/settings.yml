@@ -14,14 +14,30 @@ season:
   state_label: Подготовка
   note: Идёт работа по составлению сеттинга и механик
 categories:
+  - id: base
+    title: База
+    icon: seal
+    intro: С чего начать, как всё устроено и по каким правилам живёт мир.
   - id: lore
     title: Сеттинг
     icon: leaf
     intro: История Эрциона, магия, народы и те, кто вершит судьбы.
+  - id: maps
+    title: Карты
+    icon: map
+    intro: 'Как выглядит мир: границы, земли и то, что под ними.'
+  - id: countries
+    title: Страны
+    icon: banner
+    intro: Досье держав, порядок вступления и реестр договоров.
   - id: mechanics
     title: Механики
     icon: scales
     intro: Правила экспансии, торговли, войн и исследований.
+  - id: news
+    title: Новости и пресса
+    icon: quill
+    intro: Что происходит в мире прямо сейчас и что пишут игроки.
   - id: season
     title: Сезон
     icon: crown
