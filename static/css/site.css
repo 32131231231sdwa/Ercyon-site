@@ -49,6 +49,9 @@ html{
 @media (prefers-reduced-motion:reduce){
   html{ scroll-behavior:auto; }
   *{ animation-duration:.01ms!important; transition-duration:.01ms!important; }
+  /* Появление по прокрутке отключаем целиком, а не ускоряем: иначе карточки
+     всё равно ждут прокрутки, чтобы стать видимыми. */
+  .reveal{ opacity:1!important; transform:none!important; }
 }
 
 body{
@@ -213,6 +216,7 @@ body.nav-open .sidebar{ transform:translateX(0); box-shadow:8px 0 40px rgba(0,0,
   display:block; padding:.5rem .7rem; min-height:2.4rem;
   color:var(--on-deep-2); text-decoration:none; font-size:.98rem;
   border-radius:0 var(--radius) var(--radius) 0;
+  transition:color .18s,background .18s,box-shadow .18s;
 }
 .nav__list a:hover{ color:var(--parch); background:rgba(255,255,255,.05); }
 .nav__list a[aria-current="page"]{
@@ -257,6 +261,12 @@ body.nav-open .scrim{ opacity:1; }
   box-shadow:inset 0 0 60px rgba(120,100,60,.14);
 }
 .is-home .main{ padding-top:0; }
+
+/* Лист проявляется при переходе — короткая пауза вместо рывка.
+   Опасности нет: prefers-reduced-motion (строка 49) ставит .01ms на все
+   анимации, а в печати pg-in отключён явно. */
+.main{ animation:pg-in .32s ease-out both; }
+@keyframes pg-in{ from{ opacity:0 } }
 
 /* лозы по краям — только на широких экранах */
 .vine{ display:none; }
@@ -316,7 +326,8 @@ body.nav-open .scrim{ opacity:1; }
   font-size:.7em; vertical-align:.08em; transition:opacity .15s;
 }
 .prose h2:hover .anchor,.prose h3:hover .anchor,.anchor:focus{ opacity:1; }
-.prose a{ color:var(--moss); text-decoration:underline; text-decoration-color:rgba(62,107,79,.4); text-underline-offset:.18em; }
+.prose a{ color:var(--moss); text-decoration:underline; text-decoration-color:rgba(62,107,79,.4); text-underline-offset:.18em;
+  transition:color .18s,text-decoration-color .18s; }
 .prose a:hover{ color:var(--wax); text-decoration-color:currentColor; }
 .prose strong{ color:var(--deep); font-weight:700; }
 .prose em{ color:var(--ink-2); }
@@ -443,6 +454,20 @@ body.nav-open .scrim{ opacity:1; }
 }
 .hero__actions{ display:flex; flex-wrap:wrap; gap:.7rem; justify-content:center; margin-top:1.5rem; }
 
+/* Герб, заголовок, девиз и кнопки выходят поочерёдно — читатель успевает
+   разглядеть каждое. Вся череда укладывается в 1 с: дольше — и появление
+   начинает читаться как подвисшая страница.
+   .is-home у карточки сезона — на случай, если такой же блок однажды
+   поставят на другую страницу: там вступления быть не должно. */
+.hero__logo   { animation:hero-in .6s  cubic-bezier(.22,1,.36,1) .04s both; }
+.hero__title  { animation:hero-in .55s cubic-bezier(.22,1,.36,1) .13s both; }
+.hero__motto  { animation:hero-in .5s  cubic-bezier(.22,1,.36,1) .22s both; }
+.hero__rule   { animation:hero-in .5s  cubic-bezier(.22,1,.36,1) .3s  both; }
+.hero__lede   { animation:hero-in .5s  cubic-bezier(.22,1,.36,1) .37s both; }
+.hero__actions{ animation:hero-in .5s  cubic-bezier(.22,1,.36,1) .45s both; }
+.is-home .status{ animation:hero-in .5s cubic-bezier(.22,1,.36,1) .54s both; }
+@keyframes hero-in{ from{ opacity:0; transform:translateY(18px) } }
+
 /* статус сезона на главной */
 .status{
   position:relative;
@@ -489,7 +514,8 @@ body.nav-open .scrim{ opacity:1; }
   color:var(--deep); line-height:1.15; margin-bottom:.15rem;
 }
 .card__text{ display:block; font-size:.95rem; color:var(--ink-2); line-height:1.55; }
-.card__more{ color:var(--gold); flex:none; align-self:center; }
+.card__more{ color:var(--gold); flex:none; align-self:center; transition:transform .18s; }
+.card:hover .card__more{ transform:translateX(3px); }
 
 /* лента новостей */
 .feed{ margin:0 0 2rem; }
@@ -525,7 +551,8 @@ body.nav-open .scrim{ opacity:1; }
 .tile:hover{ border-color:var(--gold); transform:translateY(-2px); }
 .tile__title{ font-family:var(--display); font-size:1.3rem; font-weight:700; color:var(--deep); line-height:1.2; }
 .tile__sum{ font-size:.94rem; color:var(--ink-2); }
-.tile__go{ position:absolute; right:1rem; top:50%; transform:translateY(-50%); color:var(--gold); }
+.tile__go{ position:absolute; right:1rem; top:50%; transform:translateY(-50%); color:var(--gold); transition:transform .18s; }
+.tile:hover .tile__go{ transform:translateY(-50%) translateX(3px); }
 .tile .pill{ justify-self:start; margin-top:.35rem; }
 
 /* страны */
@@ -595,7 +622,9 @@ body.nav-open .scrim{ opacity:1; }
   background:rgba(255,255,255,.42); transition:border-color .16s,transform .16s;
 }
 .trow:hover{ border-color:var(--gold); transform:translateY(-2px); }
-.trow__seal{ color:var(--wax); flex:none; }
+/* Сургучная печать чуть поворачивается — будто её только что приложили */
+.trow__seal{ color:var(--wax); flex:none; transition:transform .25s cubic-bezier(.22,1,.36,1); }
+.trow:hover .trow__seal{ transform:rotate(-7deg) scale(1.06); }
 .wax{ width:2.4rem; height:2.4rem; }
 .wax--sm{ width:1.9rem; height:1.9rem; }
 .trow__main{ flex:1; min-width:12rem; display:grid; gap:.1rem; }
@@ -620,6 +649,24 @@ body.nav-open .scrim{ opacity:1; }
 .nitem__author{ color:var(--moss); }
 .nitem__title{ font-family:var(--display); font-size:1.35rem; font-weight:700; color:var(--deep); line-height:1.2; }
 .nitem__sum{ font-size:.95rem; color:var(--ink-2); }
+
+/* ─── появление по прокрутке ───────────────────────────────────
+   JS ставит .reveal на карточки, которые при загрузке ниже линии сгиба,
+   и добавляет .is-visible, когда карточка входит в кадр.
+   Что важно: у .card/.tile/.nitem есть свой transition (рамка, тень, сдвиг
+   при наведении). Переходом здесь пользоваться нельзя — они перебивают
+   друг друга по правилу «кто ниже в файле», и появление ломается либо
+   наведение теряет плавность. Поэтому анимация: она живёт отдельно.
+   Заливка backwards держит карточку скрытой, пока идёт её задержка,
+   а после конца анимации transform снова свободен — для hover.
+   Без JS класс .reveal не появится, и всё видно сразу. */
+.reveal{ opacity:0; }
+.reveal.is-visible{
+  opacity:1;
+  animation:rv-in .45s cubic-bezier(.22,1,.36,1) backwards;
+  animation-delay:calc(min(var(--i,0),5) * .07s);   /* ступенька, но не длиннее 5 шагов */
+}
+@keyframes rv-in{ from{ opacity:0; transform:translateY(14px) } }
 
 /* ─────────────────────── ОГЛАВЛЕНИЕ ─────────────────────── */
 .toc{ display:none; }
@@ -776,6 +823,7 @@ body.nav-open .scrim{ opacity:1; }
   .toc a{
     display:block; padding:.28rem 0; font-size:.9rem; line-height:1.4;
     color:var(--on-deep-2); text-decoration:none;
+    transition:color .2s;
   }
   .toc a:hover{ color:var(--parch); }
   .toc a.is-active{ color:var(--gold-l); }
@@ -792,6 +840,10 @@ body.nav-open .scrim{ opacity:1; }
 
 @media print{
   .topbar,.sidebar,.toc,.finder,.vine,.scrim,.hero__bg{ display:none!important; }
-  .main{ margin:0; padding:0; border:0; box-shadow:none; background:#fff; }
+  .main{ margin:0; padding:0; border:0; box-shadow:none; background:#fff; animation:none; }
   body::before{ display:none; }
+  /* На бумаге всё видно сразу: прокрутки, которая показала бы карточки, нет */
+  .reveal{ opacity:1!important; transform:none!important; }
+  .hero__logo,.hero__title,.hero__motto,.hero__rule,.hero__lede,.hero__actions,
+  .is-home .status{ animation:none!important; }
 }

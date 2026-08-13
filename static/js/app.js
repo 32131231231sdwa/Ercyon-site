@@ -253,5 +253,47 @@ window.ercionInit = () => {
   }
 
   /* ───────── внешние ссылки в новой вкладке уже помечены в HTML ───────── */
+
+  /* ─────────── КАРТОЧКИ ПОЯВЛЯЮТСЯ ПРИ ПРОКРУТКЕ ───────────
+     Трогаем только то, что при загрузке ниже линии сгиба: карточки в первом
+     экране должны быть видны сразу, иначе читатель ловит пустой лист.
+     Без JS и при prefers-reduced-motion всё видно всегда — класс .reveal
+     либо не ставится, либо его переход длится .01ms (см. site.css). */
+  if ('IntersectionObserver' in window) {
+    const fold = window.innerHeight - 40;
+    $$('.cards,.tiles,.ccards,.nlist,.trows,.feed__list').forEach(group => {
+      let i = 0;
+      for (const el of group.children) {
+        if (el.getBoundingClientRect().top < fold) continue;
+        el.classList.add('reveal');
+        el.style.setProperty('--i', i++);   // ступенька внутри своей группы
+      }
+    });
+
+    const pending = new Set($$('.reveal'));
+    const show = el => { el.classList.add('is-visible'); pending.delete(el); io2.unobserve(el); };
+    const io2 = new IntersectionObserver(entries => {
+      for (const e of entries) if (e.isIntersecting) show(e.target);
+    }, { threshold: .06, rootMargin: '0px 0px -20px 0px' });
+    pending.forEach(el => io2.observe(el));
+
+    /* Страховка. Наблюдатель сообщает только об изменении: если рывок прокрутки
+       (колесо до упора, переход по якорю) пронёс карточку мимо кадра целиком,
+       она так и осталась бы пустой. Досматриваем руками, пока есть что показать. */
+    let queued = false;
+    const sweep = () => {
+      queued = false;
+      for (const el of [...pending]) {
+        if (el.getBoundingClientRect().top < window.innerHeight) show(el);
+      }
+      if (!pending.size) window.removeEventListener('scroll', onScroll);
+    };
+    const onScroll = () => {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(sweep);
+    };
+    if (pending.size) window.addEventListener('scroll', onScroll, { passive: true });
+  }
 };
 window.ercionInit();
