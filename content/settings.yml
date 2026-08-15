@@ -14,10 +14,6 @@ season:
   state_label: Подготовка
   note: Идёт работа по составлению сеттинга и механик
 categories:
-  - id: base
-    title: База
-    icon: seal
-    intro: С чего начать, как всё устроено и по каким правилам живёт мир.
   - id: lore
     title: Сеттинг
     icon: leaf
@@ -26,10 +22,10 @@ categories:
     title: Карты
     icon: map
     intro: 'Как выглядит мир: границы, земли и то, что под ними.'
-  - id: countries
-    title: Страны
+  - id: character
+    title: Персонажи
     icon: banner
-    intro: Досье держав, порядок вступления и реестр договоров.
+    intro: Досье о персонажах!
   - id: mechanics
     title: Механики
     icon: scales
