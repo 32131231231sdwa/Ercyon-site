@@ -16,7 +16,7 @@ season:
 categories:
   - id: lore
     title: Сеттинг
-    icon: leaf
+    icon: book
     intro: История Эрциона, магия, народы и те, кто вершит судьбы.
   - id: maps
     title: Карты
