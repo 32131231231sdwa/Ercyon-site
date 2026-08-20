@@ -1,7 +1,7 @@
 ---
 title: V. Локации Подземелья
 category: lore
-order: 5
+order: 6
 slug: location
 summary: Что таит в себе сие подземелье.
 ---
