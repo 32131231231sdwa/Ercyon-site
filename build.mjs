@@ -557,6 +557,13 @@ function build() {
     log('     (откройте страницу в панели и выберите ей существующий раздел)');
   }
 
+  const heavy = heavyImages();
+  if (heavy.length) {
+    log(`\n  ⚠ Тяжёлые картинки — страница с такой открывается на телефоне долго:`);
+    heavy.forEach(x => log(`     ${(x.size / 1048576).toFixed(1)} МБ   /img/uploads/${x.name}`));
+    log('     (попросите пережать их в webp — вес упадёт в 8–10 раз, вид останется тем же)');
+  }
+
   const pages = urls.length + 1;
   log(`\n  ✔ Собрано за ${Date.now() - t0} мс`);
   log(`    страниц: ${pages}   стран: ${countries.length}   новостей: ${news.length}   договоров: ${treaties.length}`);
@@ -625,6 +632,19 @@ function imageMissing(src) {
   const rel = String(src || '').split(/[?#]/)[0].replace(/^\/+/, '');
   if (!rel) return false;
   return !fs.existsSync(path.join(STATIC, rel)) && !bundled().has(rel);
+}
+
+/** Картинки из панели приходят с телефона снимками по 2–3 МБ, и страница с такой
+    иллюстрацией открывается на мобильном интернете секундами. Пережимать их сама
+    сборка не берётся (это разговор про качество), но вес считает и называет вслух. */
+function heavyImages(limit = 600 * 1024) {
+  const dir = path.join(STATIC, 'img', 'uploads');
+  if (!fs.existsSync(dir)) return [];
+  return fs.readdirSync(dir)
+    .filter(f => /\.(png|jpe?g|gif|webp)$/i.test(f))
+    .map(f => ({ name: f, size: fs.statSync(path.join(dir, f)).size }))
+    .filter(x => x.size > limit)
+    .sort((a, b) => b.size - a.size);
 }
 
 /** Шрифты и картинки оформления лежат текстом в assets/*.b64.json —
