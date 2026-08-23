@@ -60,9 +60,15 @@ collections:
             label: Статус сезона
             widget: object
             collapsed: false
+            hint: 'Из этого собирается панель сезона на главной странице.'
             fields:
               - { name: number, label: Номер сезона, widget: number, value_type: int }
-              - { name: title, label: Название сезона, widget: string, required: false }
+              - { name: title, label: Название сезона, widget: string, required: false,
+                  hint: 'Крупная надпись на обложке. Пусто — встанет «Сезон N».' }
+              - { name: cover, label: Обложка сезона, widget: image, required: false,
+                  hint: 'Широкая картинка, лучше от 1280 пикселей по ширине. Пусто — на плашке будет золотой росчерк.' }
+              - { name: about, label: О сезоне, widget: text, required: false,
+                  hint: 'Два-три предложения под обложкой: чем этот сезон отличается. Пусто — возьмётся описание проекта.' }
               - { name: year, label: Год в мире, widget: string, hint: 'Например: 417 год Второй Эпохи' }
               - { name: mode, label: Режим набора, widget: string, hint: 'Например: Открытый набор' }
               - name: state
@@ -75,8 +81,10 @@ collections:
                   - { label: Завершён, value: zavershen }
               - { name: state_label, label: Подпись состояния, widget: string,
                   hint: 'Как это слово напишется на сайте' }
+              - { name: deadline, label: Ход сдаётся до, widget: string, required: false,
+                  hint: 'Например: Воскресенье, 21:00 МСК. Пусто — строка не появится.' }
               - { name: note, label: Примечание, widget: text, required: false,
-                  hint: 'Одна строка под статусом на главной' }
+                  hint: 'Одна строка внизу панели сезона' }
 
           - name: categories
             label: Разделы меню
@@ -169,9 +177,13 @@ collections:
                 collapsed: true
                 fields:
                   - { name: join_button, label: Кнопка «Как вступить», widget: string }
-                  - { name: status_year, label: 'Статус: год', widget: string }
-                  - { name: status_state, label: 'Статус: состояние', widget: string }
-                  - { name: status_mode, label: 'Статус: набор', widget: string }
+                  - { name: status_year, label: 'Панель сезона: год', widget: string }
+                  - { name: status_mode, label: 'Панель сезона: набор', widget: string }
+                  - { name: season_countries, label: 'Панель сезона: держав в игре', widget: string }
+                  - { name: season_treaties, label: 'Панель сезона: договоров', widget: string }
+                  - { name: season_news, label: 'Панель сезона: событий', widget: string }
+                  - { name: season_deadline, label: 'Панель сезона: срок хода', widget: string }
+                  - { name: season_more, label: 'Панель сезона: кнопка «Подробнее»', widget: string }
                   - { name: news_title, label: Заголовок ленты новостей, widget: string }
                   - { name: news_all, label: Ссылка «Все новости», widget: string }
                   - { name: news_empty, label: Когда новостей нет, widget: text }

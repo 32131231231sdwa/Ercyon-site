@@ -15,8 +15,12 @@ labels:
   home:
     join_button: О вступлении
     status_year: Год по игре
-    status_state: Статус
     status_mode: Набор
+    season_countries: Держав в игре
+    season_treaties: Договоров
+    season_news: Событий в хронике
+    season_deadline: Ход сдаётся до
+    season_more: Подробнее о сезоне
     news_title: Последние вести
     news_all: Все новости
     news_empty: Новостей пока нет — но мир не стоит на месте.

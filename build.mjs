@@ -293,6 +293,12 @@ function build() {
   if (newsFiles.length) usedCats.add('news');
   const restoredCats = ensureCategories(S, usedCats);
 
+  /* Обложка сезона. Если файл не загрузился или его переименовали, на главную
+     нельзя ставить битую картинку: панель нарисует узорную плашку, а сборка
+     скажет, чего не хватает. */
+  const lostCover = S.season.cover && imageMissing(S.season.cover) ? S.season.cover : null;
+  if (lostCover) S.season.cover = '';
+
   const catById = Object.fromEntries(S.categories.map(c => [c.id, c]));
   const orphans = [];
   const docs = [];
@@ -522,6 +528,12 @@ function build() {
     log('      проверьте список разделов в настройках — похоже, раздел удалили случайно)');
   }
 
+  if (lostCover) {
+    log(`\n  ⚠ Обложка сезона не найдена: ${lostCover}`);
+    log('     (панель сезона на главной обошлась узорной плашкой;');
+    log('      загрузите картинку заново в панели → Настройки → Статус сезона)');
+  }
+
   if (orphans.length) {
     log(`\n  ⚠ Страницы без раздела — сложены в «${L('misc.orphan_category', 'Прочее')}»:`);
     orphans.forEach(o => log(`     ${o}`));
@@ -572,6 +584,30 @@ function checkLinks(dist) {
     }
     log('     (сайт соберётся, но эти ссылки приведут читателя на «страница потерялась»)');
   }
+}
+
+/** Ключи всех файлов, которые распакуются из assets/*.b64.json в dist/. */
+let bundledFiles = null;
+function bundled() {
+  if (bundledFiles) return bundledFiles;
+  bundledFiles = new Set();
+  const dir = path.join(ROOT, 'assets');
+  if (!fs.existsSync(dir)) return bundledFiles;
+  for (const f of fs.readdirSync(dir).filter(f => f.endsWith('.b64.json'))) {
+    try {
+      Object.keys(JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8')))
+        .forEach(k => bundledFiles.add(k.replace(/\\/g, '/')));
+    } catch { /* повреждённый набор поймает unpackAssets, здесь молчим */ }
+  }
+  return bundledFiles;
+}
+
+/** Правда ли, что картинки по такому адресу в собранном сайте не будет.
+    Файл либо лежит в static/, либо распакуется из assets/*.b64.json. */
+function imageMissing(src) {
+  const rel = String(src || '').split(/[?#]/)[0].replace(/^\/+/, '');
+  if (!rel) return false;
+  return !fs.existsSync(path.join(STATIC, rel)) && !bundled().has(rel);
 }
 
 /** Шрифты и картинки оформления лежат текстом в assets/*.b64.json —

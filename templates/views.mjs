@@ -3,7 +3,7 @@
  * Все надписи берутся из content/settings.yml (блок labels) — их правит владелец.
  */
 import { esc, humanDate } from '../build.mjs';
-import { icon } from './layout.mjs';
+import { icon, stateClass } from './layout.mjs';
 
 const head = (title, sub) => `<header class="phead">
   <h1>${esc(title)}</h1>
@@ -25,12 +25,77 @@ const treatyStatus = (L, key) => ({
   expired: { label: L('treaties.status_expired', 'Истёк'),   cls: 'mid' },
 }[key] || { label: L('treaties.status_active', 'В силе'), cls: 'ok' });
 
+/* ═══════════════════════ ПАНЕЛЬ СЕЗОНА ═══════════════════════
+   Собирается из блока season в content/settings.yml — правится из панели.
+   Всё, кроме номера, необязательно: нет обложки — остаётся узорная плашка,
+   нет названия — в заголовок встанет «Сезон N», нет описания — возьмём
+   описание проекта, пустое поле просто не рисуется.
+   Счётчики держав, договоров и событий сайт считает сам, поэтому они
+   не устареют, даже если про них забудут. */
+
+export function seasonPanel(ctx) {
+  const { S, L, countries, treaties, news, menu, docs } = ctx;
+  const s = S.season || {};
+  const word = L('nav.season_word', 'Сезон');
+  const num = s.number ?? '';
+  const name = s.title || `${word} ${num}`.trim();
+  const about = s.about || S.description || '';
+
+  const facts = [
+    [L('home.status_year',      'Сейчас в мире'),   s.year],
+    [L('home.status_mode',      'Набор'),           s.mode],
+    [L('home.season_countries', 'Держав в игре'),   countries.length || ''],
+    [L('home.season_treaties',  'Договоров'),       treaties.length || ''],
+    [L('home.season_news',      'Событий в хронике'), news.length || ''],
+    [L('home.season_deadline',  'Ход сдаётся до'),  s.deadline],
+  ].filter(([, v]) => v || v === 0);
+
+  /* Кнопки строим по тому, что действительно собралось: раздел «Сезон»
+     живёт, только пока в нём есть страницы, а «Как вступить» можно
+     переименовать или удалить — мёртвой ссылки на главной быть не должно. */
+  const seasonCat = menu.find(c => c.id === 'season');
+  const joinDoc = docs.find(d => d.url === '/countries/join/');
+  const buttons = [
+    seasonCat && `<a class="btn btn--gold" href="${seasonCat.url}">${
+      esc(L('home.season_more', 'Подробнее о сезоне'))}</a>`,
+    joinDoc && `<a class="btn btn--ghost" href="${joinDoc.url}">${
+      esc(L('home.join_button', 'Как вступить'))}</a>`,
+  ].filter(Boolean).join('');
+
+  return `
+<section class="spanel ${stateClass(s.state)}" aria-labelledby="season-name">
+  <div class="spanel__cover">
+    ${s.cover
+      ? `<img class="spanel__shot" src="${esc(s.cover)}" alt="" loading="lazy" decoding="async">`
+      : `<svg class="spanel__decor" aria-hidden="true"><use href="#d-flourish"/></svg>`}
+    <span class="spanel__wash" aria-hidden="true"></span>
+    <span class="spanel__crest">
+      <span class="spanel__eyebrow">
+        <span class="spanel__dot" aria-hidden="true"></span>
+        ${esc(`${word} ${num}`.trim())}${s.state_label ? ` · ${esc(s.state_label)}` : ''}
+      </span>
+      <span class="spanel__name" id="season-name">${esc(name)}</span>
+    </span>
+  </div>
+
+  <div class="spanel__body">
+    <span class="spanel__seal" aria-hidden="true">
+      ${icon('d-wax', 'wax')}<span class="spanel__sealnum">${esc(num)}</span>
+    </span>
+    ${about ? `<p class="spanel__about">${esc(about)}</p>` : ''}
+    <dl class="spanel__facts">${facts.map(([k, v]) =>
+      `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>
+    ${s.note ? `<p class="spanel__note">${esc(s.note)}</p>` : ''}
+    ${buttons ? `<p class="spanel__actions">${buttons}</p>` : ''}
+  </div>
+</section>`;
+}
+
 /* ═══════════════════════════ ГЛАВНАЯ ═══════════════════════════ */
 
 export function home(ctx, doc) {
   const { S, menu, news, L } = ctx;
   const f = doc.front || {};
-  const season = S.season || {};
   const latest = news.slice(0, 4);
 
   const cards = menu.map(cat => `
@@ -73,19 +138,7 @@ export function home(ctx, doc) {
   </div>
 </section>
 
-<section class="status" aria-label="Статус сезона">
-  <div class="status__seal">${icon('d-wax', 'wax')}<span class="status__sealtext">${
-    esc(L('nav.season_word', 'Сезон'))}<br>${esc(season.number ?? '')}</span></div>
-  <div class="status__grid">
-    <div><span class="status__k">${esc(L('home.status_year', 'Сейчас в мире'))}</span>
-         <span class="status__v">${esc(season.year || '—')}</span></div>
-    <div><span class="status__k">${esc(L('home.status_state', 'Состояние'))}</span>
-         <span class="status__v">${esc(season.state_label || '—')}</span></div>
-    <div><span class="status__k">${esc(L('home.status_mode', 'Набор'))}</span>
-         <span class="status__v">${esc(season.mode || '—')}</span></div>
-  </div>
-  ${season.note ? `<p class="status__note">${esc(season.note)}</p>` : ''}
-</section>
+${seasonPanel(ctx)}
 
 ${f.intro_title ? `<h2 class="h-sec">${esc(f.intro_title)}</h2>` : ''}
 

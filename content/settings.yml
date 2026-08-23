@@ -13,6 +13,9 @@ season:
   state: pauza
   state_label: Подготовка
   note: Идёт работа по составлению сеттинга и механик
+  cover: /img/season-cover.webp
+  about: ''
+  deadline: Воскресенье, 21:00 МСК
 categories:
   - id: lore
     title: Сеттинг

@@ -22,7 +22,10 @@ export const icon = (id, cls = 'ico') =>
 
 const BASE = (process.env.BASE_PATH || '').replace(/\/+$/, '');
 
-const STATE_CLASS = { idet: 'is-live', nabor: 'is-open', pauza: 'is-paused', zavershen: 'is-done' };
+/* Состояние сезона → класс, который красит точку. Одна таблица на весь сайт:
+   ею пользуются и боковое меню, и панель сезона на главной. */
+export const STATE_CLASS = { idet: 'is-live', nabor: 'is-open', pauza: 'is-paused', zavershen: 'is-done' };
+export const stateClass = state => STATE_CLASS[state] || 'is-live';
 
 /* ─────────────────────────── меню ─────────────────────────── */
 
@@ -88,7 +91,7 @@ export function renderPage(ctx, doc) {
   const desc = doc.summary || S.description || '';
   const base = (S.site_url || '').replace(/\/$/, '');
   const season = S.season || {};
-  const stateCls = STATE_CLASS[season.state] || 'is-live';
+  const stateCls = stateClass(season.state);
 
   /* Надписи, которые нужны скриптам поиска */
   const jsLabels = {

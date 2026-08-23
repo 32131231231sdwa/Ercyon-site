@@ -48,7 +48,14 @@ html{
 }
 @media (prefers-reduced-motion:reduce){
   html{ scroll-behavior:auto; }
-  *{ animation-duration:.01ms!important; transition-duration:.01ms!important; }
+  /* Ноль не только длительности, но и задержки с повторами: вступление на
+     главной выходит по очереди (у панели сезона задержка полсекунды), и без
+     этого читатель, отключивший анимации, полсекунды смотрел бы на пустое
+     место. Повторы гасим за компанию — мигающая точка сезона тоже движение. */
+  *{
+    animation-duration:.01ms!important; animation-delay:0s!important;
+    animation-iteration-count:1!important; transition-duration:.01ms!important;
+  }
   /* Появление по прокрутке отключаем целиком, а не ускоряем: иначе карточки
      всё равно ждут прокрутки, чтобы стать видимыми. */
   .reveal{ opacity:1!important; transform:none!important; }
@@ -465,37 +472,105 @@ body.nav-open .scrim{ opacity:1; }
 .hero__rule   { animation:hero-in .5s  cubic-bezier(.22,1,.36,1) .3s  both; }
 .hero__lede   { animation:hero-in .5s  cubic-bezier(.22,1,.36,1) .37s both; }
 .hero__actions{ animation:hero-in .5s  cubic-bezier(.22,1,.36,1) .45s both; }
-.is-home .status{ animation:hero-in .5s cubic-bezier(.22,1,.36,1) .54s both; }
+.is-home .spanel{ animation:hero-in .5s cubic-bezier(.22,1,.36,1) .54s both; }
 @keyframes hero-in{ from{ opacity:0; transform:translateY(18px) } }
 
-/* статус сезона на главной */
-.status{
-  position:relative;
-  margin:0 0 2rem; padding:1.1rem 1.1rem 1.2rem;
+/* ─────────── панель сезона на главной ───────────
+   Обложка сверху, под ней описание, цифры и кнопки. Печать приложена
+   на стык обложки и текста: она ребёнок .spanel__body, поэтому держится
+   за край при любой высоте обложки — подгонять пиксели не нужно. */
+.spanel{
+  position:relative; margin:0 0 2rem;
   border:1px solid var(--parch-e); border-radius:var(--radius);
   background:linear-gradient(180deg,rgba(255,255,255,.5),rgba(255,255,255,.2));
   box-shadow:var(--shadow);
 }
-.status__seal{
-  position:relative; width:4.5rem; height:4.5rem; margin:-2.6rem auto .55rem;
-  color:var(--wax); filter:drop-shadow(0 4px 8px rgba(0,0,0,.28));
-  display:grid; place-items:center;
+.spanel__cover{
+  position:relative; overflow:hidden;
+  aspect-ratio:16/7; min-height:8rem;
+  border-radius:calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0;
+  background:linear-gradient(147deg,#1E4A39 0%,#0E2419 58%,#14352A 100%);
 }
-.status__seal .wax{ width:100%; height:100%; position:absolute; inset:0; }
-.status__sealtext{
+.spanel__shot{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+/* Без обложки плашка не пустует: по ней идёт золотой росчерк из того же
+   набора, что рисует разделители на страницах. */
+.spanel__decor{
+  position:absolute; left:50%; top:46%; transform:translate(-50%,-50%);
+  width:min(22rem,86%); height:6rem; color:var(--gold); opacity:.42;
+}
+/* Затемнение снизу: под ним читается любая присланная картинка */
+.spanel__wash{
+  position:absolute; inset:0;
+  background:linear-gradient(180deg,rgba(13,33,25,.12) 0%,rgba(13,33,25,.5) 52%,rgba(13,33,25,.92) 100%);
+}
+/* Справа оставлено место под печать: она свисает с обложки, и название,
+   если оно длинное, должно переноситься, а не подлезать под сургуч. */
+.spanel__crest{
+  position:absolute; left:1rem; right:6.5rem; bottom:.85rem;
+  display:grid; gap:.25rem; color:var(--parch);
+}
+.spanel__eyebrow{
+  display:flex; align-items:center; gap:.45rem;
+  font-size:.74rem; letter-spacing:.14em; text-transform:uppercase; color:var(--gold-l);
+}
+.spanel__dot{
+  width:.5rem; height:.5rem; border-radius:50%; flex:none; background:#7DBE8A;
+}
+.spanel.is-live .spanel__dot{ box-shadow:0 0 0 4px rgba(125,190,138,.2); animation:pulse 2.6s infinite; }
+.spanel.is-open .spanel__dot{ background:var(--gold); box-shadow:0 0 0 4px rgba(199,164,90,.18); }
+.spanel.is-paused .spanel__dot{ background:#B9A05E; }
+.spanel.is-done .spanel__dot{ background:#8A8A8A; }
+.spanel__name{
+  font-family:var(--display); font-weight:700; line-height:1.12;
+  font-size:clamp(1.5rem,6.5vw,2.1rem);
+  text-shadow:0 2px 14px rgba(0,0,0,.55);
+}
+.spanel__body{ padding:1.15rem 1.1rem 1.25rem; }
+/* Сургучная печать. Внутри — только номер: слово «Сезон» стоит строкой выше,
+   а в оттиске размером с ноготь оно перечёркивалось собственным ободком.
+   Оттиск — поплавок с отрицательным верхним отступом: он наполовину заходит
+   на обложку, а текст обтекает его по кругу (shape-outside). Поэтому на
+   телефоне абзац сужается только в первых строках, а не по всей высоте,
+   а цифры и кнопки ниже (у них своя система координат — grid и flex)
+   браузер сам отодвигает от печати, даже если описание сезона пустое.
+   position:relative обязателен: без него поплавок ушёл бы под затемнение
+   обложки, которое рисуется позиционированным слоем. */
+.spanel__seal{
+  float:right; shape-outside:circle(50%);
+  position:relative; margin:-3.5rem 0 .4rem .85rem;
+  width:4.6rem; height:4.6rem; display:grid; place-items:center;
+  color:var(--wax); filter:drop-shadow(0 5px 11px rgba(0,0,0,.42));
+}
+.spanel__seal .wax{ position:absolute; inset:0; width:100%; height:100%; }
+.spanel__sealnum{
   position:relative; font-family:var(--display); font-weight:700;
-  font-size:.78rem; line-height:1.1; color:#F3DCCF; text-align:center;
-  letter-spacing:.06em; text-transform:uppercase;
+  font-size:1.9rem; line-height:1; color:#F6E4D8;
+  text-shadow:0 1px 2px rgba(0,0,0,.4);
 }
-.status__grid{ display:grid; gap:.85rem; text-align:center; }
-.status__k{
-  display:block; font-size:.74rem; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3);
+.spanel__about{
+  margin:0 0 .9rem; font-size:1rem; color:var(--ink-2); line-height:1.6;
 }
-.status__v{ display:block; font-family:var(--display); font-size:1.35rem; font-weight:600; color:var(--deep); line-height:1.2; }
-.status__note{
-  margin:1rem 0 0; padding-top:.85rem; border-top:1px dashed var(--parch-e);
-  font-size:.95rem; color:var(--ink-2); text-align:center; font-style:italic;
+/* Цифры сезона. На телефоне колонки набираются по месту, от планшета их
+   ровно три: шесть подписей укладываются в два полных ряда, а не в один
+   длинный с хвостом из пустых клеток. Сетка — отдельный контекст
+   форматирования, поэтому печать в неё не залезает даже без описания. */
+.spanel__facts{
+  display:grid; gap:.8rem .9rem; margin:0;
+  grid-template-columns:repeat(auto-fit,minmax(8rem,1fr));
+  padding-top:.9rem; border-top:1px solid var(--parch-e);
 }
+.spanel__facts dt{
+  font-size:.72rem; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+}
+.spanel__facts dd{
+  margin:.1rem 0 0; font-family:var(--display); font-size:1.2rem; font-weight:600;
+  color:var(--deep); line-height:1.2;
+}
+.spanel__note{
+  margin:.95rem 0 0; padding-top:.85rem; border-top:1px dashed var(--parch-e);
+  font-size:.95rem; color:var(--ink-2); font-style:italic;
+}
+.spanel__actions{ display:flex; flex-wrap:wrap; gap:.7rem; margin:1.1rem 0 0; }
 
 /* карточки разделов */
 .cards{ display:grid; gap:.75rem; margin:0 0 2.5rem; }
@@ -746,9 +821,13 @@ body.nav-open .scrim{ opacity:1; }
   .cards{ grid-template-columns:repeat(auto-fill,minmax(17rem,1fr)); }
   .tiles{ grid-template-columns:repeat(auto-fill,minmax(17rem,1fr)); }
   .ccards{ grid-template-columns:repeat(auto-fill,minmax(21rem,1fr)); }
-  .status{ padding:1.4rem 1.6rem 1.5rem; }
-  .status__grid{ grid-template-columns:repeat(3,1fr); }
-  .status__grid > div + div{ border-left:1px solid var(--parch-e); }
+  .spanel__cover{ aspect-ratio:21/8; min-height:11rem; }
+  .spanel__crest{ left:1.6rem; right:8rem; bottom:1.1rem; }
+  .spanel__body{ padding:1.4rem 1.6rem 1.5rem; }
+  .spanel__seal{ margin:-4.3rem 0 .5rem 1.1rem; width:5.4rem; height:5.4rem; }
+  .spanel__sealnum{ font-size:2.2rem; }
+  .spanel__facts{ grid-template-columns:repeat(3,1fr); gap:1rem 1.4rem; }
+  .spanel__about{ font-size:1.05rem; }
   .passport dl{ grid-template-columns:1fr 1fr; gap:1rem 1.5rem; }
   .hero{ padding:4rem 2rem 3.5rem; }
   .hero__logo{ width:10rem; height:10rem; }
@@ -844,6 +923,19 @@ body.nav-open .scrim{ opacity:1; }
   body::before{ display:none; }
   /* На бумаге всё видно сразу: прокрутки, которая показала бы карточки, нет */
   .reveal{ opacity:1!important; transform:none!important; }
+  /* Шапка главной на экране выходит за поля листа (margin в минус на всю
+     ширину) — на бумаге это уезжало за край страницы. */
+  .hero{ margin-left:0; margin-right:0; }
   .hero__logo,.hero__title,.hero__motto,.hero__rule,.hero__lede,.hero__actions,
-  .is-home .status{ animation:none!important; }
+  .is-home .spanel{ animation:none!important; }
+  /* Панель сезона: тёмная обложка на бумаге съела бы полкартриджа, поэтому
+     от неё остаётся название сезона обычным текстом. */
+  .spanel__shot,.spanel__decor,.spanel__wash,.spanel__seal{ display:none!important; }
+  .spanel__cover{ aspect-ratio:auto; min-height:0; background:none; }
+  .spanel__crest{
+    position:static; inset:auto; color:var(--deep); padding:1rem 1rem 0; gap:.15rem;
+  }
+  .spanel__eyebrow{ color:var(--ink-3); }
+  .spanel__name{ text-shadow:none; }
+  .spanel__actions{ display:none!important; }
 }
