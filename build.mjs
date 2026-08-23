@@ -234,11 +234,13 @@ function loadSettings() {
 }
 
 /* ═════════════════════ страховка разделов ═════════════════════
-   Разделы, которые сайт знает «в лицо». Если такой раздел случайно удалили
-   из настроек (легко сделать в панели), а страницы с ним остались, раздел
-   восстанавливается сам: иначе половина сайта свалится в «Прочее», адреса
-   страниц поедут, а страны, договоры и новости пропадут из меню.
-   Это уже случалось — правка настроек трижды сносила по разделу. */
+   Разделы, которые сайт знает «в лицо»: у них особая раскладка адресов
+   («База» живёт в корне, страны и договоры — по /countries/…), поэтому,
+   если такой раздел исчез из настроек, его страницы нельзя просто свалить
+   в «Прочее» — поедут все адреса и старые ссылки перестанут открываться.
+   Раздел, которого нет в настройках, считается скрытым: из меню и с главной
+   он уходит (владелец удалил — значит удалил), но страницы остаются по своим
+   прежним адресам, а сборка вслух перечисляет, что стало не видно. */
 const CATEGORY_FALLBACKS = {
   base:      { title: 'База',             icon: 'seal',
                intro: 'С чего начать, как всё устроено и по каким правилам живёт мир.' },
@@ -257,22 +259,12 @@ const CATEGORY_FALLBACKS = {
 };
 const CATEGORY_ORDER = Object.keys(CATEGORY_FALLBACKS);
 
-function ensureCategories(S, usedIds) {
-  const restored = [];
-  for (const id of usedIds) {
-    if (!CATEGORY_FALLBACKS[id]) continue;          // незнакомый id — страница уйдёт в «Прочее»
-    if (S.categories.some(c => c.id === id)) continue;
-    const pos = CATEGORY_ORDER.indexOf(id);
-    // Возвращаем раздел на его обычное место, чтобы меню не перетасовалось.
-    let at = S.categories.findIndex(c => {
-      const i = CATEGORY_ORDER.indexOf(c.id);
-      return i === -1 || i > pos;
-    });
-    if (at < 0) at = S.categories.length;
-    S.categories.splice(at, 0, { id, order: at, ...CATEGORY_FALLBACKS[id] });
-    restored.push(id);
-  }
-  return restored;
+/** Знакомые разделы, которых нет в настройках: страницы у них есть, а в меню их не будет. */
+function hiddenCategories(S, usedIds) {
+  return [...usedIds]
+    .filter(id => CATEGORY_FALLBACKS[id] && !S.categories.some(c => c.id === id))
+    .sort((a, b) => CATEGORY_ORDER.indexOf(a) - CATEGORY_ORDER.indexOf(b))
+    .map(id => ({ id, order: CATEGORY_ORDER.indexOf(id), hidden: true, ...CATEGORY_FALLBACKS[id] }));
 }
 
 /* ═════════════════════════ сборка ═════════════════════════ */
@@ -287,11 +279,12 @@ function build() {
   const treatyFiles = readDir('treaties').filter(x => !x.front.draft);
   const newsFiles = readDir('news').filter(x => !x.front.draft);
 
-  /* Пропавшие разделы возвращаем до того, как начнём раскладывать страницы. */
+  /* Разделы, которых нет в настройках, разбираем до раскладки страниц:
+     в меню их не будет, но адреса страниц должны остаться прежними. */
   const usedCats = new Set(pageFiles.map(x => x.front.category).filter(Boolean));
   if (countryFiles.length || treatyFiles.length) usedCats.add('countries');
   if (newsFiles.length) usedCats.add('news');
-  const restoredCats = ensureCategories(S, usedCats);
+  const hiddenCats = hiddenCategories(S, usedCats);
 
   /* Обложка сезона. Если файл не загрузился или его переименовали, на главную
      нельзя ставить битую картинку: панель нарисует узорную плашку, а сборка
@@ -299,7 +292,7 @@ function build() {
   const lostCover = S.season.cover && imageMissing(S.season.cover) ? S.season.cover : null;
   if (lostCover) S.season.cover = '';
 
-  const catById = Object.fromEntries(S.categories.map(c => [c.id, c]));
+  const catById = Object.fromEntries([...S.categories, ...hiddenCats].map(c => [c.id, c]));
   const orphans = [];
   const docs = [];
 
@@ -521,11 +514,16 @@ function build() {
   // Если сайт в подпапке — переписываем все корневые ссылки на /Ercyon-site/...
   applyBasePath(DIST, BASE);
 
-  if (restoredCats.length) {
-    log(`\n  ⚠ В настройках не хватало разделов — вернули сами:`);
-    restoredCats.forEach(id => log(`     ${id} → «${CATEGORY_FALLBACKS[id].title}»`));
-    log('     (страницы этих разделов иначе свалились бы в «Прочее», а адреса поехали бы;');
-    log('      проверьте список разделов в настройках — похоже, раздел удалили случайно)');
+  if (hiddenCats.length) {
+    log(`\n  ⚠ Разделы удалены из настроек — из меню и с главной они убраны:`);
+    for (const cat of hiddenCats) {
+      const inCat = docs.filter(d => d.category?.id === cat.id);
+      log(`     «${cat.title}» — страниц осталось: ${inCat.length}`);
+      inCat.forEach(d => log(`        ${d.url}   ${d.title}`));
+    }
+    log('     (адреса не менялись, старые ссылки открываются, страницы находит поиск —');
+    log('      но из меню на них больше не попасть. Не нужны — удалите их в панели;');
+    log('      нужны — выберите им раздел из списка настроек.)');
   }
 
   if (lostCover) {

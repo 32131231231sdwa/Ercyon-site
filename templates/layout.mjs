@@ -53,7 +53,10 @@ function navHtml(menu, current, L) {
 
 /* ─────────────────────── хлебные крошки ─────────────────────── */
 
-function crumbs(doc, L) {
+/* Раздел, которого нет в настройках, живёт без обзорной страницы: его крошка
+   остаётся для порядка, но ссылкой не становится — иначе поведёт в 404.
+   Поэтому крошки спрашивают у сборки, существует ли адрес. */
+function crumbs(doc, L, exists) {
   const parts = [{ t: L('nav.home', 'Главная'), u: '/' }];
   if (doc.category) parts.push({ t: doc.category.title, u: `/${doc.category.id}/` });
   if (doc.kind === 'country') parts.push({ t: L('countries.index_title', 'Досье стран'), u: '/countries/' });
@@ -64,7 +67,9 @@ function crumbs(doc, L) {
   const seen = new Set();
   const links = parts
     .filter(p => p.u !== doc.url && !seen.has(p.u) && seen.add(p.u))
-    .map(p => `<li><a href="${p.u}">${esc(p.t)}</a></li>`).join('');
+    .map(p => exists(p.u)
+      ? `<li><a href="${p.u}">${esc(p.t)}</a></li>`
+      : `<li>${esc(p.t)}</li>`).join('');
   return `<nav class="crumbs" aria-label="Вы здесь"><ol>${links}${
     last ? `<li aria-current="page">${esc(last)}</li>` : ''}</ol></nav>`;
 }
@@ -85,6 +90,8 @@ function tocHtml(toc, L) {
 export function renderPage(ctx, doc) {
   const { S, menu, L } = ctx;
   const isHome = doc.url === '/';
+  /* Какие адреса сборка действительно напишет: страницы и обзоры разделов. */
+  const exists = u => u === '/' || ctx.docs.some(d => d.url === u) || menu.some(c => c.url === u);
   const title = isHome
     ? `${S.site_title} — ${S.motto}`
     : `${doc.title} — ${S.site_title}`;
@@ -182,7 +189,7 @@ ${SPRITE}
     <span class="vine vine--left" aria-hidden="true">${VINE}</span>
     <span class="vine vine--right" aria-hidden="true">${VINE}</span>
 
-    ${isHome ? '' : crumbs(doc, L)}
+    ${isHome ? '' : crumbs(doc, L, exists)}
     ${doc.body}
 
     ${isHome ? '' : `<div class="updated">${icon('i-clock', 'ico ico--sm')}

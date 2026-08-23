@@ -97,6 +97,10 @@ export function home(ctx, doc) {
   const { S, menu, news, L } = ctx;
   const f = doc.front || {};
   const latest = news.slice(0, 4);
+  /* Ссылку на «Как вступить» ставим только если такая страница есть: её могут
+     удалить или перенести из панели, а мёртвая кнопка на главной — худшее,
+     что читатель увидит первым. */
+  const joinUrl = ctx.docs.find(d => d.url === '/countries/join/')?.url;
 
   const cards = menu.map(cat => `
     <a class="card" href="${cat.url}">
@@ -133,7 +137,8 @@ export function home(ctx, doc) {
     <div class="hero__actions">
       <a class="btn btn--gold" href="${esc(S.telegram_url || '#')}" target="_blank" rel="noopener noreferrer">
         ${icon('i-telegram', 'ico')}<span>${esc(S.telegram_label || 'В группу')}</span></a>
-      <a class="btn btn--ghost" href="/countries/join/">${esc(L('home.join_button', 'Как вступить'))}</a>
+      ${joinUrl ? `<a class="btn btn--ghost" href="${joinUrl}">${
+        esc(L('home.join_button', 'Как вступить'))}</a>` : ''}
     </div>
   </div>
 </section>
@@ -179,11 +184,15 @@ export function categoryIndex(ctx, cat) {
 export function countriesIndex(ctx) {
   const { countries, L } = ctx;
   const title = L('countries.index_title', 'Досье стран');
+  const joinUrl = ctx.docs.find(d => d.url === '/countries/join/')?.url;
+  const cta = joinUrl
+    ? `<a class="btn btn--gold" href="${joinUrl}">${esc(L('countries.cta', 'Основать свою страну'))}</a>`
+    : '';
 
   if (!countries.length) {
     return head(title, '') +
-      `<p class="muted">${esc(L('countries.empty', 'Первая держава ещё не основана.'))}
-       <a href="/countries/join/">${esc(L('countries.cta', 'Основать свою страну'))}</a></p>`;
+      `<p class="muted">${esc(L('countries.empty', 'Первая держава ещё не основана.'))}</p>` +
+      (cta ? `<p class="cta-line">${cta}</p>` : '');
   }
 
   const cards = countries.map(c => {
@@ -201,9 +210,8 @@ export function countriesIndex(ctx) {
   }).join('');
 
   return head(title, L('countries.index_note', ''))
-    + `<div class="ccards">${cards}</div>
-       <p class="cta-line"><a class="btn btn--gold" href="/countries/join/">${
-         esc(L('countries.cta', 'Основать свою страну'))}</a></p>`;
+    + `<div class="ccards">${cards}</div>`
+    + (cta ? `<p class="cta-line">${cta}</p>` : '');
 }
 
 export function country(ctx, d) {
