@@ -26,6 +26,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      # Уменьшенные копии картинок для телефона делает ffmpeg, а на машине
+      # сборщика его нет. Копии, уже лежащие в репозитории, не переделываются —
+      # ffmpeg нужен только для картинок, только что загруженных из панели.
+      # Не поставился — не беда: сайт соберётся, телефон скачает оригинал.
+      - name: ffmpeg (копии картинок для телефона)
+        continue-on-error: true
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends ffmpeg
       - name: Сборка сайта
         run: node build.mjs
         env:
