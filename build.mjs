@@ -167,7 +167,12 @@ function polish(html) {
   html = html.replace(/<a href="(https?:\/\/[^"]+)"/g,
     '<a href="$1" target="_blank" rel="noopener noreferrer" class="ext"');
 
-  // картинки — ленивые, с подписью из title
+  // картинки — с размерами и копиями для телефона, ленивые, с подписью из title
+  html = html.replace(/<img\s[^>]*>/g, tag => {
+    if (/\swidth=/.test(tag)) return tag;
+    const extra = imgAttrs((tag.match(/\ssrc="([^"]*)"/) || [, ''])[1]);
+    return extra ? tag.replace(/<img\s/, `<img${extra} `) : tag;
+  });
   html = html.replace(/<p>(<img [^>]+>)<\/p>/g, (_, img) => {
     const alt = (img.match(/alt="([^"]*)"/) || [, ''])[1];
     const title = (img.match(/title="([^"]*)"/) || [, ''])[1];
@@ -564,6 +569,18 @@ function build() {
     log('     (попросите пережать их в webp — вес упадёт в 8–10 раз, вид останется тем же)');
   }
 
+  if (madeVariants.length) {
+    log(`\n  + Сделаны версии картинок для телефона (${madeVariants.length}):`);
+    madeVariants.forEach(v => log(`     /${v}`));
+    log('     (лежат рядом с оригиналом — сохраните их в репозиторий вместе со страницей)');
+  }
+
+  if (singleImages.size) {
+    log(`\n  ⚠ Картинки без версии для телефона — он скачает их целиком:`);
+    [...singleImages].forEach(v => log(`     /${v}`));
+    log('     (уменьшенные копии делает ffmpeg: node tools/make-variants.mjs)');
+  }
+
   const pages = urls.length + 1;
   log(`\n  ✔ Собрано за ${Date.now() - t0} мс`);
   log(`    страниц: ${pages}   стран: ${countries.length}   новостей: ${news.length}   договоров: ${treaties.length}`);
@@ -640,11 +657,131 @@ function imageMissing(src) {
 function heavyImages(limit = 600 * 1024) {
   const dir = path.join(STATIC, 'img', 'uploads');
   if (!fs.existsSync(dir)) return [];
+  const variant = new RegExp(`-(${IMG_STEPS.join('|')})\\.webp$`, 'i');
   return fs.readdirSync(dir)
-    .filter(f => /\.(png|jpe?g|gif|webp)$/i.test(f))
+    .filter(f => /\.(png|jpe?g|gif|webp)$/i.test(f) && !variant.test(f))
     .map(f => ({ name: f, size: fs.statSync(path.join(dir, f)).size }))
     .filter(x => x.size > limit)
     .sort((a, b) => b.size - a.size);
+}
+
+/* ═════════════ размеры картинок и версии для телефона ═════════════
+   Иллюстрация из панели приходит шириной 1536–1920 точек, а в колонке текста
+   занимает 338 точек на телефоне и 672 на большом экране. Поэтому сборка
+   узнаёт настоящий размер файла — чтобы место под картинку было занято
+   заранее и текст не прыгал, пока она грузится, — и подставляет srcset,
+   набор уменьшенных копий, из которых браузер сам берёт нужную.
+
+   Копии лежат рядом с оригиналом: foo.webp → foo-700.webp, foo-1100.webp.
+   Копий нет, а ffmpeg в системе есть — сборка сделает их сама (то же самое
+   умеет tools/make-variants.mjs). Нет ни копий, ни ffmpeg — картинка
+   останется одна: сайт соберётся, просто телефон скачает её целиком. */
+export const IMG_STEPS = [700, 1100];
+/* Ширина места под картинку: в колонке текста 672 точки, на узком экране —
+   вся ширина минус поля. Отсюда браузер и считает, какую копию брать. */
+const IMG_SIZES = '(min-width: 44rem) 672px, calc(100vw - 2.4rem)';
+const madeVariants = [];
+const singleImages = new Set();
+
+const sizeCache = new Map();
+/** Настоящие размеры картинки в точках, прочитанные из самого файла. */
+function imageSize(abs) {
+  if (sizeCache.has(abs)) return sizeCache.get(abs);
+  let out = null;
+  try {
+    const b = fs.readFileSync(abs);
+    if (b.length > 32 && b.toString('latin1', 1, 4) === 'PNG')
+      out = { w: b.readUInt32BE(16), h: b.readUInt32BE(20) };
+    else if (b.toString('latin1', 0, 4) === 'RIFF' && b.toString('latin1', 8, 12) === 'WEBP')
+      out = webpSize(b);
+    else if (b[0] === 0xff && b[1] === 0xd8)
+      out = jpegSize(b);
+  } catch { /* нечитаемый файл — обойдёмся без размеров */ }
+  if (out && !(out.w > 0 && out.h > 0)) out = null;
+  sizeCache.set(abs, out);
+  return out;
+}
+
+/** webp бывает трёх видов, размер лежит в каждом на своём месте. */
+function webpSize(b) {
+  const kind = b.toString('latin1', 12, 16);
+  if (kind === 'VP8X') return { w: (b[24] | b[25] << 8 | b[26] << 16) + 1,
+                                h: (b[27] | b[28] << 8 | b[29] << 16) + 1 };
+  if (kind === 'VP8 ') return { w: b.readUInt16LE(26) & 0x3fff, h: b.readUInt16LE(28) & 0x3fff };
+  if (kind === 'VP8L') {
+    const n = b.readUInt32LE(21);
+    return { w: (n & 0x3fff) + 1, h: (n >> 14 & 0x3fff) + 1 };
+  }
+  return null;
+}
+
+/** У jpeg размер спрятан в кадровом маркере — идём по маркерам до первого SOF. */
+function jpegSize(b) {
+  let i = 2;
+  while (i + 9 < b.length) {
+    if (b[i] !== 0xff) { i++; continue; }
+    const m = b[i + 1];
+    if (m >= 0xc0 && m <= 0xcf && m !== 0xc4 && m !== 0xc8 && m !== 0xcc)
+      return { h: b.readUInt16BE(i + 5), w: b.readUInt16BE(i + 7) };
+    i += 2 + b.readUInt16BE(i + 2);
+  }
+  return null;
+}
+
+let ffmpegOk = null;
+/** Есть ли чем уменьшать картинки. Спрашиваем один раз за сборку. */
+function haveFfmpeg() {
+  if (ffmpegOk === null) {
+    try { execFileSync('ffmpeg', ['-version'], { stdio: 'ignore' }); ffmpegOk = true; }
+    catch { ffmpegOk = false; }
+  }
+  return ffmpegOk;
+}
+
+/** Копия картинки шириной w точек рядом с оригиналом. Адрес копии или null. */
+export function makeVariant(rel, w) {
+  const ext = path.extname(rel);
+  const out = `${rel.slice(0, -ext.length)}-${w}.webp`;
+  const abs = path.join(STATIC, out);
+  if (fs.existsSync(abs)) return out;
+  if (!haveFfmpeg()) return null;
+  try {
+    execFileSync('ffmpeg', ['-v', 'error', '-y', '-i', path.join(STATIC, rel),
+      '-vf', `scale=${w}:-2:flags=lanczos`, '-c:v', 'libwebp',
+      '-quality', '86', '-compression_level', '6', '-preset', 'picture', abs], { stdio: 'ignore' });
+  } catch { return null; }
+  if (!fs.existsSync(abs)) return null;
+  madeVariants.push(out);
+  return out;
+}
+
+/** Копии каких ширин этой картинке нужны: шире оригинала — незачем. */
+export function variantSteps(rel) {
+  const size = imageSize(path.join(STATIC, rel));
+  return size ? IMG_STEPS.filter(w => w < size.w - 40) : [];
+}
+
+/** Что дописать картинке из текста страницы: размеры и набор копий. */
+function imgAttrs(src) {
+  const raw = String(src || '').split(/[?#]/)[0];
+  if (!raw.startsWith('/')) return '';
+  let rel;
+  try { rel = decodeURIComponent(raw).replace(/^\/+/, ''); } catch { return ''; }
+  const abs = path.join(STATIC, rel);
+  if (!fs.existsSync(abs)) return '';
+  const size = imageSize(abs);
+  if (!size) return '';
+
+  const set = [];
+  for (const w of variantSteps(rel)) {
+    const v = makeVariant(rel, w);
+    if (v) set.push(`${encodeURI('/' + v)} ${w}w`);
+  }
+  if (set.length) set.push(`${raw} ${size.w}w`);
+  else if (size.w > 900) singleImages.add(rel);
+
+  return ` width="${size.w}" height="${size.h}"`
+       + (set.length ? ` srcset="${set.join(', ')}" sizes="${IMG_SIZES}"` : '');
 }
 
 /** Шрифты и картинки оформления лежат текстом в assets/*.b64.json —
@@ -683,7 +820,9 @@ function applyBasePath(dist, base) {
     if (ext === '.html') {
       let h = fs.readFileSync(f, 'utf8');
       h = h.replace(/(\s(?:href|src))="\/(?!\/)/g, `$1="${base}/`);
-      h = h.replace(/(\ssrcset)="\/(?!\/)/g, `$1="${base}/`);
+      /* в srcset адресов несколько через запятую — базу нужно дописать каждому */
+      h = h.replace(/(\ssrcset=")([^"]*)"/g, (_, pre, list) =>
+        `${pre}${list.replace(/(^|,\s*)\/(?!\/)/g, `$1${base}/`)}"`);
       h = h.replace(/(content="\s*\d+\s*;\s*url=)\/(?!\/)/g, `$1${base}/`);
       fs.writeFileSync(f, h, 'utf8'); n++;
     } else if (ext === '.css') {
@@ -738,11 +877,15 @@ async function serve(port = 4321) {
 
 /* ═════════════════════════ запуск ═════════════════════════ */
 
-try {
-  build();
-  if (process.argv.includes('--serve')) await serve();
-} catch (e) {
-  console.error('\n  ✖ Сборка не удалась:\n');
-  console.error('   ', e.message, '\n');
-  process.exit(1);
+/* Собираем только когда файл запустили сам: tools/*.mjs берут отсюда
+   отдельные функции, и лишняя сборка им ни к чему. */
+if (process.argv[1] && path.resolve(process.argv[1]) === url.fileURLToPath(import.meta.url)) {
+  try {
+    build();
+    if (process.argv.includes('--serve')) await serve();
+  } catch (e) {
+    console.error('\n  ✖ Сборка не удалась:\n');
+    console.error('   ', e.message, '\n');
+    process.exit(1);
+  }
 }

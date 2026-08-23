@@ -11,8 +11,34 @@ import url from 'node:url';
 import { esc, humanDate } from '../build.mjs';
 
 const HERE = path.dirname(url.fileURLToPath(import.meta.url));
-const SPRITE = fs.readFileSync(path.join(HERE, '..', 'static', 'img', 'decor', 'sprite.svg'), 'utf8')
+const SPRITE_RAW = fs.readFileSync(path.join(HERE, '..', 'static', 'img', 'decor', 'sprite.svg'), 'utf8')
   .replace(/<\?xml[^>]*\?>\s*/, '');
+
+/* Спрайт целиком — 15 КБ, и он вшит в каждую страницу, а нужны ей десяток
+   значков. Поэтому в разметку идёт метка, а на её место встают только те
+   символы, на которые страница правда ссылается (и те, что они тянут за собой:
+   один значок может состоять из другого). Общий <defs> со стилями остаётся
+   всегда — без него линии значков теряют цвет и толщину. */
+const SPRITE_HEAD = (SPRITE_RAW.match(/^<svg[^>]*>/) || [
+  '<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true" focusable="false">',
+])[0];
+const SPRITE_DEFS = (SPRITE_RAW.match(/<defs>[\s\S]*?<\/defs>/) || [''])[0];
+const SYMBOLS = new Map(
+  [...SPRITE_RAW.matchAll(/<symbol id="([^"]+)"[\s\S]*?<\/symbol>/g)].map(m => [m[1], m[0]]));
+const SPRITE_SLOT = '<!--значки страницы-->';
+
+function spriteFor(html) {
+  const want = new Set();
+  const add = id => {
+    if (!SYMBOLS.has(id) || want.has(id)) return;
+    want.add(id);
+    for (const m of SYMBOLS.get(id).matchAll(/(?:xlink:)?href="#([^"]+)"/g)) add(m[1]);
+  };
+  for (const m of html.matchAll(/(?:xlink:)?href="#([^"]+)"/g)) add(m[1]);
+  if (!want.size) return '';
+  const list = [...SYMBOLS].filter(([id]) => want.has(id)).map(([, markup]) => markup);
+  return `${SPRITE_HEAD}${SPRITE_DEFS}${list.join('')}</svg>`;
+}
 
 /* Лоза вдоль полей листа — несколько одинаковых звеньев подряд, чтобы тянулась непрерывно */
 const VINE = '<svg viewBox="0 0 60 300" preserveAspectRatio="none"><use href="#d-vine"/></svg>'.repeat(7);
@@ -115,7 +141,7 @@ export function renderPage(ctx, doc) {
     nothing: L('nav.search_nothing', 'По запросу «{q}» ничего не нашлось. Попробуйте другое слово.'),
   };
 
-  return `<!doctype html>
+  const html = `<!doctype html>
 <html lang="ru">
 <head>
 <meta charset="utf-8">
@@ -142,7 +168,7 @@ export function renderPage(ctx, doc) {
 <link rel="stylesheet" href="/css/site.css">
 </head>
 <body class="${isHome ? 'is-home' : ''}" data-cat="${doc.category?.id || ''}">
-${SPRITE}
+${SPRITE_SLOT}
 <a class="skip" href="#main">Перейти к содержанию</a>
 
 <header class="topbar">
@@ -241,4 +267,5 @@ ${SPRITE}
 <script src="/js/app.js" defer></script>
 </body>
 </html>`;
+  return html.replace(SPRITE_SLOT, () => spriteFor(html));
 }

@@ -82,6 +82,12 @@ body::before{                       /* зернистость поверх тё�
 body.nav-open{ overflow:hidden; }
 
 img,svg,picture,video{ max-width:100%; display:block; }
+/* В разметке у картинок есть width и height — из них браузер заранее знает
+   пропорции и держит место под картинку, пока та грузится (текст не дёргается).
+   Но тогда height нужно вернуть к auto, иначе картинка растянется по вертикали
+   на всю указанную в разметке высоту. Свои размеры (логотип, обложка) заданы
+   классами — они сильнее и остаются как были. */
+img{ height:auto; }
 a{ color:inherit; }
 button{ font:inherit; color:inherit; background:none; border:0; cursor:pointer; }
 input{ font:inherit; }
