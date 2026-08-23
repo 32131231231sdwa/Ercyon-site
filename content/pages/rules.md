@@ -1,6 +1,7 @@
 ---
 title: Правила
-category: base
+category: rules
+section_home: true
 order: 10
 slug: rules
 summary: Двенадцать правил, на которых держится игра, и короткий список того, за что убирают из проекта сразу.

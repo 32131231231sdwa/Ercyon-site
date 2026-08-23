@@ -256,6 +256,8 @@ const CATEGORY_FALLBACKS = {
                intro: 'Что происходит в мире прямо сейчас и что пишут игроки.' },
   season:    { title: 'Сезон',            icon: 'crown',
                intro: 'Итоги, номинации и те, чьи имена остались в хронике.' },
+  rules:     { title: 'Правила',          icon: 'scroll',
+               intro: 'На чём держится игра и за что убирают из проекта.' },
 };
 const CATEGORY_ORDER = Object.keys(CATEGORY_FALLBACKS);
 
@@ -295,6 +297,9 @@ function build() {
   const catById = Object.fromEntries([...S.categories, ...hiddenCats].map(c => [c.id, c]));
   const orphans = [];
   const docs = [];
+  /* Разделы, чьё «лицо» уже занято страницей: второй такой странице адрес
+     раздела не отдаём — иначе одна молча затрёт другую. */
+  const catHomeTaken = new Set();
 
   const push = d => { docs.push(d); return d; };
 
@@ -313,7 +318,18 @@ function build() {
       cat = catById.other;
     }
     const slug = front.slug || slugify(front.title || path.basename(file, '.md'));
-    const urlPath = cat.id === 'base' ? `/${slug}/` : `/${cat.id}/${slug}/`;
+    /* Страница может быть лицом своего раздела: тогда она живёт прямо на его
+       адресе (/rules/), а отдельный «обзор раздела» сборка не рисует. Для
+       страниц, потерявших раздел, это не работает — они и так лежат в «Прочем». */
+    const ownsCat = front.section_home === true && cat.id !== 'other' && !catHomeTaken.has(cat.id);
+    if (front.section_home === true && !ownsCat && cat.id !== 'other') {
+      log(`  ⚠ ${file}: раздел «${cat.title}» уже представлен другой страницей — `
+        + `эта осталась на обычном адресе.`);
+    }
+    if (ownsCat) catHomeTaken.add(cat.id);
+    const urlPath = ownsCat ? `/${cat.id}/`
+      : cat.id === 'base' ? `/${slug}/`
+      : `/${cat.id}/${slug}/`;
     const { html, toc } = polish(renderMarkdown(body));
     push({
       kind: 'page', title: front.title || slug, slug, url: urlPath, category: cat,
@@ -456,13 +472,16 @@ function build() {
         x: plainText(d.html).slice(0, 2200),
         k: d.kind,
       })),
-    ...menu.map(c => ({ u: c.url, t: c.title, c: 'Раздел', s: c.intro || '', x: '', k: 'category' })),
+    /* Раздел, чей адрес занят настоящей страницей, в поиске уже есть — второй
+       раз его не показываем, иначе в выдаче будут два одинаковых ответа. */
+    ...menu.filter(c => !c.hasOwnHome)
+      .map(c => ({ u: c.url, t: c.title, c: 'Раздел', s: c.intro || '', x: '', k: 'category' })),
   ];
   fs.writeFileSync(path.join(DIST, 'search-index.json'), JSON.stringify(index), 'utf8');
 
   /* — карта сайта, robots, RSS — */
   const base = (S.site_url || '').replace(/\/$/, '');
-  const urls = ['/', '/search/', ...menu.map(c => c.url), ...docs.map(d => d.url)];
+  const urls = [...new Set(['/', '/search/', ...menu.map(c => c.url), ...docs.map(d => d.url)])];
   fs.writeFileSync(path.join(DIST, 'sitemap.xml'),
     `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`
     + urls.map(u => `  <url><loc>${base}${u}</loc></url>`).join('\n') + `\n</urlset>\n`, 'utf8');

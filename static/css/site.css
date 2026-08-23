@@ -203,13 +203,20 @@ body.nav-open .sidebar{ transform:translateX(0); box-shadow:8px 0 40px rgba(0,0,
 
 /* меню */
 .nav{ display:grid; gap:.15rem; }
-.nav__toggle{
+.nav__toggle,
+.nav__link{
   display:flex; align-items:center; gap:.6rem; width:100%;
   min-height:var(--tap); padding:.45rem .55rem;
   border-radius:var(--radius); color:var(--parch);
   font-family:var(--display); font-size:1.2rem; font-weight:600; letter-spacing:.03em;
 }
-.nav__toggle:hover{ background:rgba(255,255,255,.05); }
+.nav__link{ text-decoration:none; }
+.nav__toggle:hover,
+.nav__link:hover{ background:rgba(255,255,255,.05); }
+.nav__link[aria-current="page"]{
+  color:var(--gold-l); background:rgba(176,141,74,.14);
+  box-shadow:inset 2px 0 0 var(--gold);
+}
 .nav__ico{ width:1.15rem; height:1.15rem; color:var(--gold); flex:none; }
 .nav__title{ flex:1; text-align:left; }
 .nav__chev{ width:.95rem; height:.95rem; color:var(--on-deep-2); transition:transform .2s; }

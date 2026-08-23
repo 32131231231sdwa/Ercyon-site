@@ -312,6 +312,9 @@ collections:
         hint: 'Список берётся из «Настройки → Разделы меню» — добавили там раздел, он сразу появится здесь'
       - { name: order, label: Порядок в меню, widget: number, value_type: int, default: 100,
           hint: 'Чем меньше число, тем выше страница в списке' }
+      - { name: section_home, label: Эта страница — весь раздел, widget: boolean, default: false,
+          required: false,
+          hint: 'Включайте, когда в разделе одна страница (как «Правила»): раздел в меню станет ссылкой прямо на неё, а адрес будет коротким — /rules/' }
       - { name: slug, label: Адрес страницы, widget: string,
           pattern: ['^[a-z0-9-]+$', 'Только латиница, цифры и дефис'],
           hint: 'Латиницей. Например magic → /lore/magic/' }

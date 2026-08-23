@@ -32,6 +32,15 @@ export const stateClass = state => STATE_CLASS[state] || 'is-live';
 function navHtml(menu, current, L) {
   return menu.map(cat => {
     const active = cat.items.some(i => i.url === current) || current === cat.url;
+    /* Раздел из одной страницы, которая и есть его лицо («Правила»), рисуем
+       обычной ссылкой: раскрывать в нём нечего, а лишняя стрелка только путает. */
+    if (cat.hasOwnHome && cat.items.length === 1) {
+      return `<a class="nav__link" href="${cat.url}"${
+        cat.url === current ? ' aria-current="page"' : ''}>
+        ${icon(`i-${cat.icon || 'leaf'}`, 'nav__ico')}
+        <span class="nav__title">${esc(cat.title)}</span>
+      </a>`;
+    }
     const items = cat.items.map(i =>
       `<li><a href="${i.url}"${i.url === current ? ' aria-current="page"' : ''}>${esc(i.title)}</a></li>`
     ).join('');

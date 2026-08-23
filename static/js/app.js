@@ -162,7 +162,7 @@ window.ercionInit = () => {
     }
     box.innerHTML = hits.map((d, i) => `
       <a class="fres${i === 0 ? ' is-sel' : ''}" href="${(window.__BASE__||'')+d.u}">
-        <span class="fres__cat">${escHtml(d.c || '')}</span>
+        <span class="fres__cat">${escHtml(d.c === d.t ? '' : (d.c || ''))}</span>
         <span class="fres__title">${mark(d.t, tokens)}</span>
         <span class="fres__snip">${mark(snippet(d, tokens), tokens)}</span>
       </a>`).join('');
