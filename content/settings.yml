@@ -7,15 +7,15 @@ telegram_label: Вступить
 site_url: https://32131231231sdwa.github.io/Ercyon-site
 season:
   number: 1
-  title: «The Chasm Abyss»
-  year: 1600-е
-  mode: Открытый набор
-  state: pauza
-  state_label: Подготовка
-  note: Идёт работа по составлению сеттинга и механик
-  cover: /img/season-cover.webp
+  title: «Свет рока дней новых»
+  cover: /img/uploads/IMG_1311.jpeg
   about: ''
+  year: 1501 г.
+  mode: Открытый набор
+  state: nabor
+  state_label: Подготовка
   deadline: Воскресенье, 21:00 МСК
+  note: Идёт работа по составлению сеттинга и механик
 categories:
   - id: lore
     title: Сеттинг
