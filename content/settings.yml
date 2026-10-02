@@ -6,10 +6,10 @@ telegram_url: https://t.me/Ercyon
 telegram_label: Вступить
 site_url: https://32131231231sdwa.github.io/Ercyon-site
 season:
-  number: 1
+  number: 7
   title: «Свет рока дней новых»
   cover: /img/uploads/IMG_1311.jpeg
-  about: ''
+  about: Века средневековья минули. Пришла новая заря. И пришла сия с моря…
   year: 1501 г.
   mode: Открытый набор
   state: nabor
@@ -17,16 +17,12 @@ season:
   deadline: Воскресенье, 21:00 МСК
   note: Идёт работа по составлению сеттинга и механик
 categories:
-  - id: lore
-    title: Сеттинг
-    icon: book
-    intro: История Эрциона, магия, народы и те, кто вершит судьбы.
   - id: maps
     title: Карты
     icon: map
     intro: 'Как выглядит мир: границы, земли и то, что под ними.'
-  - id: character
-    title: Персонажи
+  - id: countries
+    title: Государства
     icon: banner
     intro: Досье о персонажах!
   - id: mechanics
@@ -37,10 +33,6 @@ categories:
     title: Новости и пресса
     icon: quill
     intro: Что происходит в мире прямо сейчас и что пишут игроки.
-  - id: season
-    title: Сезон
-    icon: crown
-    intro: Итоги, номинации и те, чьи имена остались в хронике.
   - id: rules
     title: Правила
     icon: scroll
