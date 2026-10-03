@@ -1,5 +1,5 @@
 ---
-title: Особые Металлы
+title: Особая Химия
 category: mechanics
 order: 1
 section_home: false
