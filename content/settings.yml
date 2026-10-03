@@ -8,23 +8,27 @@ site_url: https://32131231231sdwa.github.io/Ercyon-site
 season:
   number: 7
   title: «Свет рока дней новых»
-  cover: /img/uploads/IMG_1311.jpeg
+  cover: /img/uploads/Без названия57_20261002155949.png
   about: Века средневековья минули. Пришла новая заря. И пришла сия с моря…
   year: 1501 г.
   mode: Открытый набор
   state: nabor
   state_label: Подготовка
-  deadline: Воскресенье, 21:00 МСК
+  deadline: ''
   note: Идёт работа по составлению сеттинга и механик
 categories:
-  - id: maps
-    title: Карты
-    icon: map
-    intro: 'Как выглядит мир: границы, земли и то, что под ними.'
+  - id: rules
+    title: Правила
+    icon: scroll
+    intro: На чём держится игра и за что убирают из проекта.
   - id: countries
     title: Государства
     icon: banner
     intro: Досье о персонажах!
+  - id: maps
+    title: Карты
+    icon: map
+    intro: 'Как выглядит мир: границы, земли и то, что под ними.'
   - id: mechanics
     title: Механики
     icon: scales
@@ -33,8 +37,4 @@ categories:
     title: Новости и пресса
     icon: quill
     intro: Что происходит в мире прямо сейчас и что пишут игроки.
-  - id: rules
-    title: Правила
-    icon: scroll
-    intro: На чём держится игра и за что убирают из проекта.
 footer_note: Эрцион — некоммерческий ролевой проект. Все составляющие и производные сюжета вымышлены.
