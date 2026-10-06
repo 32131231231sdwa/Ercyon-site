@@ -7,7 +7,12 @@ government: Инсургентская республика
 capital: Форьен
 founded: 1501 г.
 population: 60 000
-resources: []
+resources:
+  - Нефть (1)
+  - Золото (2)
+  - Железо (1)
+  - Медь (1)
+  - Уголь (1)
 magic: ''
 status: active
 color: '#B08D4A'
