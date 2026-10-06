@@ -6,7 +6,7 @@ ruler: Альн Хайрье
 government: Инсургентская республика
 capital: Форьен
 founded: 1501 г.
-population: 120 000
+population: 60 000
 resources: []
 magic: ''
 status: active
