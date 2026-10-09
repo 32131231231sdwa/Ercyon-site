@@ -1,7 +1,7 @@
 ---
 title: Экспансия
 category: mechanics
-order: 10
+order: 3
 slug: expansion
 summary: Как взять свою пядь земли?!
 ---
