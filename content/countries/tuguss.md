@@ -25,7 +25,7 @@ player: '@Kaiwozer'
 summary: Похоже конец?
 ---
 
-![Территория Империи ](/img/uploads/IMG_1499.jpeg)
+![Территория Империи](/img/uploads/IMG_1499.jpeg)
 
 ## ИСТОРИЯ:
 
