@@ -1,12 +1,12 @@
 ---
-title: Вольное Княжество Орсус
+title: Орсус Великий
 slug: orsus
 order: 300
-ruler: Альн Хайрье
-government: Инсургентская республика
+ruler: Князь Вездесущий Орсуса Великого Итритий Фарьяром.
+government: Абсолютная Монархия
 capital: Форьен
 founded: 1501 г.
-population: 60 000
+population: 61 000
 resources:
   - Нефть (1)
   - Золото (2)
@@ -15,9 +15,9 @@ resources:
   - Уголь (1)
 magic: ''
 status: active
-color: '#B08D4A'
+color: '#8A6B33'
 player: '@KrasnayaArmia'
-summary: Во длани факел вольный
+summary: Да станет великим Орсус!
 ---
 
 ![Территория Княжеств](/img/uploads/IMG_1483.jpeg)
