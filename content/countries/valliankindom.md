@@ -19,7 +19,7 @@ resources:
   - Меллит (2)
 magic: ''
 status: active
-color: '#6B4A6B'
+color: '#6B3A3F'
 player: '@Miratorg2'
 summary: Ещё одно государство в горах?
 ---
