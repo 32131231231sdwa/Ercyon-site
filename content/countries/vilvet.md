@@ -16,13 +16,12 @@ resources:
   - Меллит (1)
 magic: ''
 status: active
-color: '#6B3A3F'
+color: '#7C302B'
 player: '@Big_mips228'
 summary: Консулы всякие…
 ---
 
-![Карта Республики ](/img/uploads/Photoroom_20261004_133241.png)
-
+![Карта Республики](/img/uploads/Photoroom_20261004_133241.png)
 
 ## ИСТОРИЯ:
 
