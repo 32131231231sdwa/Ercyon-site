@@ -5,50 +5,14 @@
 import { esc, humanDate } from '../build.mjs';
 import { icon, stateClass } from './layout.mjs';
 
-const head = (title, sub, time) => `<header class="phead">
+const head = (title, sub) => `<header class="phead">
   <h1>${esc(title)}</h1>
   ${sub ? `<p class="phead__sub">${esc(sub)}</p>` : ''}
-  ${time ? `<p class="phead__meta"><span class="phead__time">${icon('i-clock', 'ico ico--sm')} ~${time} мин чтения</span></p>` : ''}
   <svg class="phead__rule" aria-hidden="true"><use href="#d-flourish"/></svg>
 </header>`;
 
 const prose = html => `<div class="prose">${html}</div>`;
 
-export function shareBox(ctx, doc) {
-  const { S } = ctx;
-  const base = (S.site_url || '').replace(/\/$/, '');
-  const url = encodeURIComponent(`${base}${doc.url}`);
-  const text = encodeURIComponent(`${doc.title} — ${doc.summary || S.site_title}`);
-  return `
-<aside class="share-box" aria-label="Поделиться хроникой">
-  <span class="share-box__label">Летопись открыта миру:</span>
-  <a class="share-btn share-btn--tg" href="https://t.me/share/url?url=${url}&text=${text}" target="_blank" rel="noopener noreferrer">
-    ${icon('i-telegram', 'ico ico--sm')}
-    <span>Поделиться в Telegram</span>
-  </a>
-</aside>`;
-}
-
-export function relatedChronicles(ctx, currentDoc) {
-  if (!currentDoc.category) return '';
-  const rel = ctx.docs.filter(d =>
-    d.url !== currentDoc.url &&
-    d.kind !== 'countries-index' && d.kind !== 'treaties-index' && d.kind !== 'wars-index' && d.kind !== 'news-index' && d.kind !== 'search' &&
-    (d.category?.id === currentDoc.category?.id || (currentDoc.kind === 'war' && d.kind === 'country') || (currentDoc.kind === 'country' && d.kind === 'war'))
-  ).slice(0, 3);
-
-  if (!rel.length) return '';
-  return `
-<section class="related">
-  <h2 class="h-sec">Связанные хроники</h2>
-  <div class="tiles">${rel.map(d => `
-    <a class="tile" href="${d.url}">
-      <span class="tile__title">${esc(d.title)}</span>
-      ${d.summary ? `<span class="tile__sum">${esc(d.summary)}</span>` : ''}
-      <span class="tile__go">${icon('i-arrow', 'ico ico--sm')}</span>
-    </a>`).join('')}</div>
-</section>`;
-}
 
 const countryStatus = (L, key) => ({
   active:  { label: L('countries.status_active',  'Действует'),   cls: 'ok'  },
@@ -201,10 +165,8 @@ ${doc.html ? `<section class="homeprose">${prose(doc.html)}</section>` : ''}
 /* ═══════════════════════ ОБЫЧНАЯ СТРАНИЦА ═══════════════════════ */
 
 export function page(ctx, d) {
-  return head(d.title, d.summary, d.readingTime)
-    + prose(d.html)
-    + shareBox(ctx, d)
-    + relatedChronicles(ctx, d);
+  return head(d.title, d.summary)
+    + prose(d.html);
 }
 
 /* ═══════════════════════ ОБЗОР КАТЕГОРИИ ═══════════════════════ */
@@ -255,53 +217,12 @@ export function countriesIndex(ctx) {
       (cta ? `<p class="cta-line">${cta}</p>` : '');
   }
 
-  // Уникальные ресурсы без скобок с количеством
-  const allRes = new Set();
-  countries.forEach(c => {
-    const list = Array.isArray(c.front.resources) ? c.front.resources : (c.front.resources ? [c.front.resources] : []);
-    list.forEach(r => {
-      const clean = String(r).replace(/\s*\(\d+\)\s*$/, '').trim();
-      if (clean) allRes.add(clean);
-    });
-  });
-  const resList = [...allRes].sort((a, b) => a.localeCompare(b, 'ru'));
-
-  const activeCount = countries.filter(c => (c.front.status || 'active') === 'active').length;
-  const neutralCount = countries.filter(c => c.front.status === 'neutral').length;
-  const fallenCount = countries.filter(c => c.front.status === 'fallen').length;
-
   const filterBar = `
 <div class="cfilter" id="cfilter">
   <div class="cfilter__search">
     ${icon('i-search', 'ico')}
-    <input type="search" id="cSearchInput" placeholder="Поиск по державе, правителю, столице…" autocomplete="off" spellcheck="false">
+    <input type="search" id="cSearchInput" placeholder="Поиск по державе, правителю, столице, ресурсам…" autocomplete="off" spellcheck="false" aria-label="Поиск по каталогу держав">
   </div>
-  <div class="cfilter__row">
-    <div class="cfilter__pills" role="radiogroup" aria-label="Фильтр по статусу">
-      <button type="button" class="cfilter__pill is-active" data-status="all">Все <span class="cfilter__count">${countries.length}</span></button>
-      <button type="button" class="cfilter__pill" data-status="active">🟢 Действует <span class="cfilter__count">${activeCount}</span></button>
-      ${neutralCount ? `<button type="button" class="cfilter__pill" data-status="neutral">🟡 Нейтралитет <span class="cfilter__count">${neutralCount}</span></button>` : ''}
-      ${fallenCount ? `<button type="button" class="cfilter__pill" data-status="fallen">🔴 Пала <span class="cfilter__count">${fallenCount}</span></button>` : ''}
-    </div>
-    <div class="cfilter__selects">
-      <div class="cfilter__select-wrap">
-        ${icon('i-leaf', 'ico ico--sm')}
-        <select id="cResourceSelect" aria-label="Фильтр по ресурсам">
-          <option value="">Все ресурсы (${resList.length})</option>
-          ${resList.map(r => `<option value="${esc(r.toLowerCase())}">${esc(r)}</option>`).join('')}
-        </select>
-      </div>
-      <div class="cfilter__select-wrap">
-        ${icon('i-scales', 'ico ico--sm')}
-        <select id="cSortSelect" aria-label="Сортировка держав">
-          <option value="order">По летописному порядку</option>
-          <option value="name">По названию (А–Я)</option>
-          <option value="pop">По населению (убыв.)</option>
-        </select>
-      </div>
-    </div>
-  </div>
-  <div class="cfilter__status" id="cFilterStatus">Показано держав: <strong>${countries.length}</strong> из ${countries.length}</div>
 </div>`;
 
   const cards = countries.map(c => {
@@ -411,9 +332,6 @@ ${countryWars.length ? `<section class="related">
     </a>`;
   }).join('')}</div>
 </section>` : ''}
-
-${shareBox(ctx, d)}
-${relatedChronicles(ctx, d)}
 `;
 }
 
@@ -595,9 +513,6 @@ export function war(ctx, d) {
 
 ${prose(d.html)}
 
-${shareBox(ctx, d)}
-${relatedChronicles(ctx, d)}
-
 <p class="cta-line">
   <a class="btn btn--ghost" href="/wars/">${esc(L('wars.back', '← Ко всем войнам'))}</a>
 </p>
@@ -682,7 +597,6 @@ export function newsItem(ctx, d) {
   <svg class="phead__rule" aria-hidden="true"><use href="#d-flourish"/></svg>
 </header>
 ${prose(d.html)}
-${shareBox(ctx, d)}
 <p class="cta-line"><a class="btn btn--ghost" href="/news/">${
   esc(L('news.back', '← Ко всем новостям'))}</a></p>`;
 }
