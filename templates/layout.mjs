@@ -167,7 +167,6 @@ export function renderPage(ctx, doc) {
 <link rel="preload" as="font" type="font/woff2" href="/fonts/ptserif-400-n-cyrillic.woff2" crossorigin>
 <link rel="stylesheet" href="/css/fonts.css">
 <link rel="stylesheet" href="/css/site.css">
-<script>(function(){try{var t=localStorage.getItem('ercyon-theme');if(t==='candle'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.setAttribute('data-theme','candle');}}catch(e){}})();</script>
 </head>
 <body class="${isHome ? 'is-home' : ''}" data-cat="${doc.category?.id || ''}">
 ${SPRITE_SLOT}
@@ -181,9 +180,6 @@ ${SPRITE_SLOT}
     <img src="/img/logo-96.webp" width="34" height="34" alt="" class="topbar__logo">
     <span>${esc(S.site_title)}</span>
   </a>
-  <button class="topbar__btn" id="themeBtn" aria-label="Свечной свет" title="Переключить свечной свет (ночной режим)">
-    ${icon('i-candle', 'ico ico--lg')}
-  </button>
   <button class="topbar__btn" id="searchBtn" aria-label="${esc(L('nav.search_button', 'Поиск по сайту'))}">
     ${icon('i-search', 'ico ico--lg')}
   </button>
@@ -217,14 +213,9 @@ ${SPRITE_SLOT}
 
       <nav class="nav" aria-label="Основное меню">${navHtml(menu, doc.url, L)}</nav>
 
-      <div class="sidebar__bottom">
-        <a class="tg" href="${esc(S.telegram_url || '#')}" target="_blank" rel="noopener noreferrer">
-          ${icon('i-telegram')}<span>${esc(S.telegram_label || 'В группу')}</span>
-        </a>
-        <button class="sidebar__theme" id="sidebarThemeBtn" title="Переключить свечной свет (ночной режим)" aria-label="Свечной свет">
-          ${icon('i-candle', 'ico')}<span>Свечной свет</span>
-        </button>
-      </div>
+      <a class="tg" href="${esc(S.telegram_url || '#')}" target="_blank" rel="noopener noreferrer">
+        ${icon('i-telegram')}<span>${esc(S.telegram_label || 'В группу')}</span>
+      </a>
     </div>
   </aside>
 

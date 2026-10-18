@@ -1038,88 +1038,10 @@ body.nav-open .scrim{ opacity:1; }
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   СВЕЧНОЙ СВЕТ (НОЧНОЙ РЕЖИМ), КАРТА, ФИЛЬТРЫ И КАЛЬКУЛЯТОР
+   КАРТА, ФИЛЬТРЫ, КАЛЬКУЛЯТОР И ИНТЕРАКТИВНЫЕ МОДУЛИ
    ═══════════════════════════════════════════════════════════════ */
 
-/* ── НОЧНОЙ РЕЖИМ «СВЕЧНОЙ СВЕТ» ── */
-html[data-theme="candle"] {
-  --deep: #161311;
-  --deep-d: #0d0a09;
-  --deep-l: #241d18;
-  --moss: #503d2e;
-  --moss-l: #6e543f;
-  --parch: #201a15;
-  --parch-d: #181310;
-  --parch-e: #2b231d;
-  --gold: #d4a359;
-  --gold-l: #eac88b;
-  --wax: #9e3933;
-  --wax-l: #bd4841;
-  --ink: #e8e0ce;
-  --ink-2: #c4b59f;
-  --ink-3: #95846f;
-  --on-deep: #e8dfcf;
-  --on-deep-2: #b8a994;
-}
-html[data-theme="candle"] body::before {
-  opacity: .18;
-}
-html[data-theme="candle"] .main {
-  background: var(--parch);
-  border-color: rgba(212, 163, 89, .32);
-  box-shadow: 0 4px 28px rgba(0, 0, 0, .6), 0 0 40px rgba(212, 163, 89, .06);
-}
-html[data-theme="candle"] .topbar {
-  background: linear-gradient(180deg, #1f1813 0%, #120e0b 100%);
-  border-bottom-color: rgba(212, 163, 89, .35);
-}
-html[data-theme="candle"] .sidebar {
-  background: linear-gradient(160deg, #1f1813 0%, #120e0b 100%);
-}
-html[data-theme="candle"] .phead h1,
-html[data-theme="candle"] .warbox__title {
-  color: var(--gold-l);
-  text-shadow: 0 0 16px rgba(234, 200, 139, .15);
-}
-html[data-theme="candle"] .tile,
-html[data-theme="candle"] .ccard,
-html[data-theme="candle"] .wcard,
-html[data-theme="candle"] .passport,
-html[data-theme="candle"] .warbox {
-  background: rgba(36, 29, 24, .75);
-  border-color: rgba(212, 163, 89, .24);
-}
-html[data-theme="candle"] .tile:hover,
-html[data-theme="candle"] .ccard:hover,
-html[data-theme="candle"] .wcard:hover {
-  border-color: var(--gold);
-  background: rgba(45, 36, 30, .9);
-  box-shadow: 0 4px 20px rgba(0,0,0,.4), 0 0 15px rgba(212, 163, 89, .12);
-}
 
-/* ── КНОПКИ ТЕМЫ В ШАПКЕ И МЕНЮ ── */
-.sidebar__bottom {
-  margin-top: auto; padding-top: 1.2rem;
-  display: flex; flex-direction: column; gap: .6rem;
-  border-top: 1px solid rgba(176, 141, 74, .2);
-}
-.sidebar__theme {
-  display: flex; align-items: center; gap: .7rem;
-  padding: .65rem .85rem; border-radius: var(--radius);
-  background: rgba(176, 141, 74, .1); color: var(--gold-l);
-  border: 1px solid rgba(176, 141, 74, .25);
-  font-size: .95rem; font-family: var(--display); font-weight: 600;
-  cursor: pointer; transition: background .2s, border-color .2s;
-}
-.sidebar__theme:hover {
-  background: rgba(176, 141, 74, .2);
-  border-color: var(--gold);
-}
-#themeBtn.is-active,
-.sidebar__theme.is-active {
-  color: #ffda79;
-  text-shadow: 0 0 10px rgba(255, 218, 121, .5);
-}
 
 /* ── ВРЕМЯ ЧТЕНИЯ И КНОПКА TELEGRAM ── */
 .phead__reading-time,
@@ -1166,10 +1088,6 @@ html[data-theme="candle"] .wcard:hover {
   border-radius: var(--radius);
   display: flex; flex-direction: column; gap: 1rem;
 }
-html[data-theme="candle"] .cfilter {
-  background: rgba(36, 29, 24, .6);
-  border-color: rgba(212, 163, 89, .25);
-}
 .cfilter__search {
   position: relative;
   display: flex; align-items: center;
@@ -1213,9 +1131,6 @@ html[data-theme="candle"] .cfilter {
   background: var(--deep); color: var(--on-deep);
   border-color: var(--gold);
   box-shadow: 0 2px 6px rgba(0,0,0,.15);
-}
-html[data-theme="candle"] .cfilter__pill.is-active {
-  background: var(--gold); color: #1a1204;
 }
 .cfilter__selects {
   display: flex; flex-wrap: wrap; gap: .6rem;
@@ -1376,9 +1291,6 @@ html[data-theme="candle"] .cfilter__pill.is-active {
   pointer-events: auto; z-index: 30;
   text-align: left;
 }
-html[data-theme="candle"] .map-tooltip {
-  background: #241d18;
-}
 .map-tooltip::after {
   content: ""; position: absolute; top: 100%; left: 50%;
   transform: translateX(-50%);
@@ -1415,9 +1327,6 @@ html[data-theme="candle"] .map-tooltip {
   border-radius: var(--radius);
   box-shadow: var(--shadow);
 }
-html[data-theme="candle"] .zhivica-calc {
-  background: linear-gradient(145deg, rgba(36, 29, 24, .8) 0%, rgba(50, 38, 28, .5) 100%);
-}
 .zhivica-calc__head {
   display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .8rem;
   border-bottom: 1px solid rgba(176, 141, 74, .25);
@@ -1450,9 +1359,6 @@ html[data-theme="candle"] .zhivica-calc {
   border-color: var(--gold);
   box-shadow: 0 3px 10px rgba(0,0,0,.15);
 }
-html[data-theme="candle"] .zhivica-mage-tab.is-active {
-  background: #3a2c20; border-color: var(--gold);
-}
 .zhivica-mage-tab__name {
   display: block; font-family: var(--display); font-size: 1.05rem; font-weight: 700;
 }
@@ -1465,9 +1371,6 @@ html[data-theme="candle"] .zhivica-mage-tab.is-active {
   background: rgba(255, 255, 255, .4);
   border: 1px solid rgba(176, 141, 74, .3);
   border-radius: 8px;
-}
-html[data-theme="candle"] .zhivica-calc__meter {
-  background: rgba(20, 16, 13, .5);
 }
 .zhivica-meter__top {
   display: flex; align-items: baseline; justify-content: space-between;
@@ -1487,9 +1390,6 @@ html[data-theme="candle"] .zhivica-calc__meter {
   height: 14px; width: 100%; border-radius: 7px;
   background: rgba(0,0,0,.12);
   overflow: hidden; position: relative;
-}
-html[data-theme="candle"] .zhivica-meter__bar {
-  background: rgba(255,255,255,.1);
 }
 .zhivica-meter__fill {
   height: 100%; width: 100%;
@@ -1517,12 +1417,6 @@ html[data-theme="candle"] .zhivica-meter__bar {
   background: #fff; border-color: var(--gold);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0,0,0,.1);
-}
-html[data-theme="candle"] .zhivica-spell-btn {
-  background: #231c17; border-color: rgba(212, 163, 89, .25);
-}
-html[data-theme="candle"] .zhivica-spell-btn:hover {
-  background: #2f251e; border-color: var(--gold);
 }
 .zhivica-spell-btn__cost {
   font-size: .8rem; font-weight: 700; color: var(--wax);
@@ -1552,9 +1446,6 @@ html[data-theme="candle"] .zhivica-spell-btn:hover {
   margin-top: 1.2rem; padding: .8rem 1rem; border-radius: 6px;
   background: rgba(0,0,0,.04); border: 1px dashed rgba(176, 141, 74, .3);
   font-size: .84rem; color: var(--ink-2); max-height: 120px; overflow-y: auto;
-}
-html[data-theme="candle"] .zhivica-calc__history {
-  background: rgba(0,0,0,.2);
 }
 
 /* ── ХРОНОЛОГИЯ (TIMELINE) ── */

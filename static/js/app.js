@@ -296,32 +296,6 @@ window.ercionInit = () => {
     if (pending.size) window.addEventListener('scroll', onScroll, { passive: true });
   }
 
-  /* ─────────────────── СВЕЧНОЙ СВЕТ (ТЕМНЫЙ РЕЖИМ) ─────────────────── */
-  const themeBtn = $('#themeBtn');
-  const sidebarThemeBtn = $('#sidebarThemeBtn');
-  const updateThemeUI = isCandle => {
-    themeBtn?.classList.toggle('is-active', isCandle);
-    sidebarThemeBtn?.classList.toggle('is-active', isCandle);
-    if (themeBtn) themeBtn.setAttribute('aria-pressed', String(isCandle));
-    if (sidebarThemeBtn) sidebarThemeBtn.setAttribute('aria-pressed', String(isCandle));
-  };
-  const toggleTheme = () => {
-    const isCandle = document.documentElement.getAttribute('data-theme') === 'candle';
-    const next = isCandle ? 'day' : 'candle';
-    if (next === 'candle') {
-      document.documentElement.setAttribute('data-theme', 'candle');
-      try { localStorage.setItem('ercyon-theme', 'candle'); } catch(e){}
-      updateThemeUI(true);
-    } else {
-      document.documentElement.removeAttribute('data-theme');
-      try { localStorage.setItem('ercyon-theme', 'day'); } catch(e){}
-      updateThemeUI(false);
-    }
-  };
-  themeBtn?.addEventListener('click', toggleTheme);
-  sidebarThemeBtn?.addEventListener('click', toggleTheme);
-  updateThemeUI(document.documentElement.getAttribute('data-theme') === 'candle');
-
   /* ─────────────────── ЖИВОЙ ФИЛЬТР КАТАЛОГА ДЕРЖАВ ─────────────────── */
   const cFilter = $('#cfilter');
   if (cFilter) {
