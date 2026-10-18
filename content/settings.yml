@@ -8,7 +8,7 @@ site_url: https://32131231231sdwa.github.io/Ercyon-site
 season:
   number: 7
   title: «Свет рока дней новых»
-  cover: /img/uploads/03EACD0B-73FA-44A7-9738-AFB338F54C67.jpeg
+  cover: /img/uploads/03EACD0B-73FA-44A7-9738-AFB338F54C67.webp
   about: |-
     Веет морской ветер по своей пустоши,
     Зовя нас за собой, в дальний путь!
@@ -23,14 +23,22 @@ categories:
     title: Правила
     icon: scroll
     intro: На чём держится игра и за что убирают из проекта.
+  - id: base
+    title: База игрока
+    icon: seal
+    intro: 'С чего начать: бот, время и календарь, ответы на частые вопросы.'
   - id: mechanics
     title: Механики
     icon: scales
     intro: Основные понятия экспансии, торговли, войн и исследований.
+  - id: lore
+    title: Сеттинг и Лор
+    icon: book
+    intro: 'История Эрциона, расы, природа душ и хроника войн.'
   - id: countries
     title: Государства
     icon: banner
-    intro: Досье о странах и их основ!
+    intro: Досье о странах и их соглашениях.
   - id: maps
     title: Карты
     icon: map
@@ -39,4 +47,8 @@ categories:
     title: Новости и пресса
     icon: quill
     intro: Что происходит иль происходило.
+  - id: season
+    title: Сезон
+    icon: crown
+    intro: Итоги сезонов, номинации и зал славы.
 footer_note: Эрцион — некоммерческий ролевой проект. Все составляющие и производные сюжета вымышлены.

@@ -42,6 +42,8 @@ labels:
     f_magic: Школы Живицы
     f_player: Игрок
     f_resources: Ресурсы
+    tab_countries: Список государств
+    tab_treaties: Договоры
   treaties:
     index_title: Реестр договоров
     index_note: Всё, что скреплено Солью — и всё, что было нарушено.
@@ -52,6 +54,23 @@ labels:
     status_active: В силе
     status_broken: Нарушен
     status_expired: Истёк
+  wars:
+    index_title: Хроника войн и битв
+    index_note: Военные столкновения, походы и кампании в истории Эрциона.
+    index_menu_note: Великие походы, восстания и военные конфликты.
+    empty: В летописях пока нет записей о войнах.
+    belligerents: Противники
+    commanders: Командующие
+    forces: Силы сторон
+    casualties: Потери
+    result: Итог
+    status_active: Идёт война
+    status_truce: Перемирие
+    status_ended: Завершена
+    date_prefix: 'Период:'
+    location_prefix: 'Театр действий:'
+    allies_prefix: 'При поддержке:'
+    back: ← Ко всем войнам
   news:
     index_title: Мировые новости
     index_note: Хроника событий Эрциона — от последних к первым.

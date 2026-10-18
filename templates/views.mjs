@@ -179,6 +179,24 @@ export function categoryIndex(ctx, cat) {
   return head(cat.title, cat.intro) + `<div class="tiles">${items}</div>`;
 }
 
+/* ─────────────────────── НАВИГАЦИЯ ДИПЛОМАТИИ ─────────────────────── */
+
+export function countrySubnav(activeTab, ctx) {
+  const { countries, treaties, L } = ctx;
+  return `<nav class="subnav" aria-label="Разделы дипломатии">
+  <a class="subnav__item${activeTab === 'countries' ? ' is-active' : ''}" href="/countries/">
+    ${icon('i-banner', 'ico ico--sm')}
+    <span>${esc(L('countries.tab_countries', 'Список государств'))}</span>
+    <span class="subnav__count">${countries.length}</span>
+  </a>
+  <a class="subnav__item${activeTab === 'treaties' ? ' is-active' : ''}" href="/treaties/">
+    ${icon('d-wax', 'wax wax--sm')}
+    <span>${esc(L('countries.tab_treaties', 'Договоры'))}</span>
+    <span class="subnav__count">${treaties.length}</span>
+  </a>
+</nav>`;
+}
+
 /* ═══════════════════════════ СТРАНЫ ═══════════════════════════ */
 
 export function countriesIndex(ctx) {
@@ -189,8 +207,10 @@ export function countriesIndex(ctx) {
     ? `<a class="btn btn--gold" href="${joinUrl}">${esc(L('countries.cta', 'Основать свою страну'))}</a>`
     : '';
 
+  const subnav = countrySubnav('countries', ctx);
+
   if (!countries.length) {
-    return head(title, '') +
+    return head(title, '') + subnav +
       `<p class="muted">${esc(L('countries.empty', 'Первая держава ещё не основана.'))}</p>` +
       (cta ? `<p class="cta-line">${cta}</p>` : '');
   }
@@ -210,6 +230,7 @@ export function countriesIndex(ctx) {
   }).join('');
 
   return head(title, L('countries.index_note', ''))
+    + subnav
     + `<div class="ccards">${cards}</div>`
     + (cta ? `<p class="cta-line">${cta}</p>` : '');
 }
@@ -266,7 +287,9 @@ ${linked.length ? `<section class="related">
 export function treatiesIndex(ctx) {
   const { treaties, L } = ctx;
   const title = L('treaties.index_title', 'Реестр договоров');
-  if (!treaties.length) return head(title, L('treaties.empty', 'Договоров пока нет.'));
+  const subnav = countrySubnav('treaties', ctx);
+
+  if (!treaties.length) return head(title, L('treaties.empty', 'Договоров пока нет.')) + subnav;
 
   const rows = treaties.map(t => {
     const st = treatyStatus(L, t.front.status);
@@ -283,7 +306,7 @@ export function treatiesIndex(ctx) {
       </span>
     </a>`;
   }).join('');
-  return head(title, L('treaties.index_note', '')) + `<div class="trows">${rows}</div>`;
+  return head(title, L('treaties.index_note', '')) + subnav + `<div class="trows">${rows}</div>`;
 }
 
 export function treaty(ctx, d) {
@@ -312,6 +335,176 @@ ${parties.length ? `<section class="parties">
 </section>` : ''}
 
 ${prose(d.html)}`;
+}
+
+/* ═══════════════════════════ ВОЙНЫ И БИТВЫ ═══════════════════════════ */
+
+const warStatus = (L, key) => ({
+  active: { label: L('wars.status_active', 'Идёт война'), cls: 'bad' },
+  truce:  { label: L('wars.status_truce',  'Перемирие'),  cls: 'mid' },
+  ended:  { label: L('wars.status_ended',  'Завершена'),  cls: 'ok'  },
+}[key] || { label: L('wars.status_ended', 'Завершена'), cls: 'ok' });
+
+function renderWarSide(side, isCmd, isForces, isCasualties) {
+  if (!side) return '';
+  if (isCmd) {
+    const cmds = Array.isArray(side.commanders) ? side.commanders : [];
+    if (!cmds.length) return '<span class="muted">—</span>';
+    return `<ul class="warbox__list">${cmds.map(c => {
+      const name = typeof c === 'string' ? c : (c.name || '');
+      const title = typeof c === 'object' ? c.title : '';
+      const isDead = (typeof c === 'object' && (c.status === 'killed' || c.status === 'dead')) || name.includes('†');
+      const isWounded = (typeof c === 'object' && c.status === 'wounded') || name.includes('#†');
+      const isCaptured = typeof c === 'object' && c.status === 'captured';
+      const cleanName = name.replace(/[†#]/g, '').trim();
+      let badge = '';
+      if (isDead) badge = '<span class="warbox__dagger" title="Погиб в бою">†</span>';
+      else if (isWounded) badge = '<span class="warbox__dagger" title="Смертельно ранен / казнён">#†</span>';
+      else if (isCaptured) badge = '<span class="warbox__dagger" title="Пленён">(плен)</span>';
+
+      return `<li>
+        <span class="warbox__cmd-name">${esc(cleanName)}${badge}</span>
+        ${title ? `<span class="warbox__cmd-title">${esc(title)}</span>` : ''}
+      </li>`;
+    }).join('')}</ul>`;
+  }
+  if (isForces) {
+    const f = Array.isArray(side.forces) ? side.forces : (side.forces ? [side.forces] : []);
+    if (!f.length) return '<span class="muted">—</span>';
+    return `<ul class="warbox__list">${f.map(item => `<li>${esc(item)}</li>`).join('')}</ul>`;
+  }
+  if (isCasualties) {
+    const c = Array.isArray(side.casualties) ? side.casualties : (side.casualties ? [side.casualties] : []);
+    if (!c.length) return '<span class="muted">—</span>';
+    return `<ul class="warbox__list">${c.map(item => `<li>${esc(item)}</li>`).join('')}</ul>`;
+  }
+
+  // Основной блок: название фракции, флаг, союзники
+  const allies = Array.isArray(side.allies) ? side.allies : (side.allies ? [side.allies] : []);
+  return `
+    <div class="warbox__faction" style="--flag:${esc(side.color || '#3E6B4F')}">
+      <span class="warbox__flag" aria-hidden="true"></span>
+      <span class="warbox__fname">${esc(side.name || 'Сторона')}</span>
+    </div>
+    ${allies.length ? `
+      <div class="warbox__allies">
+        <span class="warbox__allies-title">При поддержке:</span>
+        <ul class="warbox__list">${allies.map(a => `<li>${esc(a)}</li>`).join('')}</ul>
+      </div>` : ''}`;
+}
+
+export function war(ctx, d) {
+  const { L } = ctx;
+  const f = d.front || {};
+  const st = warStatus(L, f.status);
+  const b = f.belligerents || {};
+  const sideA = b.side_a || {};
+  const sideB = b.side_b || {};
+
+  const hasCmd = (sideA.commanders?.length || sideB.commanders?.length);
+  const hasForces = (sideA.forces?.length || sideB.forces?.length);
+  const hasCasualties = (sideA.casualties?.length || sideB.casualties?.length);
+
+  return `
+<header class="phead phead--war">
+  <span class="phead__banner" aria-hidden="true">${icon('i-sword', 'ico ico--xl')}</span>
+  <h1>${esc(d.title)}</h1>
+  ${d.summary ? `<p class="phead__sub">${esc(d.summary)}</p>` : ''}
+  <p class="phead__meta">
+    <span class="pill pill--${st.cls}">${esc(f.status_label || st.label)}</span>
+    ${f.date ? `<span class="phead__date">${esc(L('wars.date_prefix', 'Период:'))} ${esc(f.date)}</span>` : ''}
+  </p>
+</header>
+
+<div class="warbox">
+  <div class="warbox__head">
+    <h2 class="warbox__title">${esc(d.title)}</h2>
+    ${f.date ? `<p class="warbox__dates">${esc(f.date)}</p>` : ''}
+    ${f.location ? `<p class="warbox__loc">${icon('i-map', 'ico ico--sm')} ${esc(f.location)}</p>` : ''}
+  </div>
+
+  <div class="warbox__section-title">${esc(L('wars.belligerents', 'Противники'))}</div>
+  <div class="warbox__cols">
+    <div class="warbox__col">${renderWarSide(sideA, false, false, false)}</div>
+    <div class="warbox__col">${renderWarSide(sideB, false, false, false)}</div>
+  </div>
+
+  ${hasCmd ? `
+    <div class="warbox__section-title">${esc(L('wars.commanders', 'Командующие'))}</div>
+    <div class="warbox__cols">
+      <div class="warbox__col">${renderWarSide(sideA, true, false, false)}</div>
+      <div class="warbox__col">${renderWarSide(sideB, true, false, false)}</div>
+    </div>` : ''}
+
+  ${hasForces ? `
+    <div class="warbox__section-title">${esc(L('wars.forces', 'Силы сторон'))}</div>
+    <div class="warbox__cols">
+      <div class="warbox__col">${renderWarSide(sideA, false, true, false)}</div>
+      <div class="warbox__col">${renderWarSide(sideB, false, true, false)}</div>
+    </div>` : ''}
+
+  ${hasCasualties ? `
+    <div class="warbox__section-title">${esc(L('wars.casualties', 'Потери'))}</div>
+    <div class="warbox__cols">
+      <div class="warbox__col">${renderWarSide(sideA, false, false, true)}</div>
+      <div class="warbox__col">${renderWarSide(sideB, false, false, true)}</div>
+    </div>` : ''}
+
+  ${f.result ? `
+    <div class="warbox__result">
+      <div class="warbox__result-label">${esc(L('wars.result', 'Итог'))}</div>
+      <div class="warbox__result-text">${esc(f.result)}</div>
+    </div>` : ''}
+</div>
+
+${prose(d.html)}
+
+<p class="cta-line">
+  <a class="btn btn--ghost" href="/wars/">${esc(L('wars.back', '← Ко всем войнам'))}</a>
+</p>
+`;
+}
+
+export function warsIndex(ctx) {
+  const { wars, L } = ctx;
+  const title = L('wars.index_title', 'Хроника войн и битв');
+
+  if (!wars || !wars.length) {
+    return head(title, L('wars.index_note', '')) +
+      `<p class="muted">${esc(L('wars.empty', 'В летописях пока нет записей о войнах.'))}</p>`;
+  }
+
+  const items = wars.map(w => {
+    const f = w.front || {};
+    const st = warStatus(L, f.status);
+    const b = f.belligerents || {};
+    const sideA = b.side_a?.name || '';
+    const sideB = b.side_b?.name || '';
+
+    return `
+    <a class="wcard" href="${w.url}">
+      <div class="wcard__top">
+        <span class="wcard__title">${esc(w.title)}</span>
+        <span class="pill pill--${st.cls}">${esc(f.status_label || st.label)}</span>
+      </div>
+      ${f.date ? `<div class="wcard__dates">${esc(f.date)}${f.location ? ` · ${esc(f.location)}` : ''}</div>` : ''}
+      ${(sideA || sideB) ? `
+        <div class="wcard__versus">
+          <span class="wcard__side" style="--flag:${esc(b.side_a?.color || '#3E6B4F')}">
+            <span class="warbox__flag" aria-hidden="true"></span>
+            <span>${esc(sideA)}</span>
+          </span>
+          <span class="wcard__vs">против</span>
+          <span class="wcard__side" style="--flag:${esc(b.side_b?.color || '#6B3A3F')}">
+            <span class="warbox__flag" aria-hidden="true"></span>
+            <span>${esc(sideB)}</span>
+          </span>
+        </div>` : ''}
+      <div class="wcard__sum">${esc(w.summary || '')}</div>
+    </a>`;
+  }).join('');
+
+  return head(title, L('wars.index_note', '')) + `<div class="wcards">${items}</div>`;
 }
 
 /* ═══════════════════════════ НОВОСТИ ═══════════════════════════ */

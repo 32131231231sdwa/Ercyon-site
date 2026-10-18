@@ -96,6 +96,7 @@ function crumbs(doc, L, exists) {
   if (doc.category) parts.push({ t: doc.category.title, u: `/${doc.category.id}/` });
   if (doc.kind === 'country') parts.push({ t: L('countries.index_title', 'Досье стран'), u: '/countries/' });
   if (doc.kind === 'treaty') parts.push({ t: L('treaties.index_title', 'Реестр договоров'), u: '/treaties/' });
+  if (doc.kind === 'war') parts.push({ t: L('wars.index_title', 'Хроника войн и битв'), u: '/wars/' });
   if (doc.kind === 'news') parts.push({ t: L('news.index_title', 'Мировые новости'), u: '/news/' });
   const last = doc.url !== '/' ? doc.title : null;
 

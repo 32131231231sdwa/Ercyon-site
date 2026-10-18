@@ -721,6 +721,113 @@ body.nav-open .scrim{ opacity:1; }
 .trow__side{ display:flex; align-items:center; gap:.6rem; }
 .trow__date{ font-size:.82rem; color:var(--ink-3); }
 
+/* ─────────────────────────── ПЕРЕКЛЮЧАТЕЛЬ РАЗДЕЛОВ (SUBNAV) ─────────────────────────── */
+.subnav{
+  display:flex; align-items:center; gap:.5rem; margin:0 0 1.75rem;
+  padding:.35rem; background:rgba(255,255,255,.45);
+  border:1px solid var(--parch-e); border-radius:var(--radius);
+  box-shadow:inset 0 1px 3px rgba(0,0,0,.05); flex-wrap:wrap;
+}
+.subnav__item{
+  display:flex; align-items:center; gap:.55rem; padding:.5rem 1rem;
+  text-decoration:none; font-family:var(--display); font-size:1.15rem; font-weight:600;
+  color:var(--ink-2); border-radius:calc(var(--radius) - 2px);
+  border:1px solid transparent; transition:all .16s ease;
+}
+.subnav__item:hover{ color:var(--deep); background:rgba(255,255,255,.5); }
+.subnav__item.is-active{
+  color:var(--deep); background:var(--parch); border-color:var(--gold);
+  box-shadow:0 2px 6px rgba(8,24,18,.08);
+}
+.subnav__count{
+  display:inline-flex; align-items:center; justify-content:center;
+  min-width:1.35rem; height:1.35rem; padding:0 .35rem; border-radius:99px;
+  font-family:var(--serif); font-size:.75rem; font-weight:700;
+  background:rgba(62,107,79,.15); color:var(--moss);
+}
+.subnav__item.is-active .subnav__count{ background:var(--gold); color:#1a1204; }
+
+/* ─────────────────────────── ИНФОБОКС ВОЙНЫ (WARBOX) ─────────────────────────── */
+.warbox{
+  margin:0 0 2.25rem; background:rgba(255,255,255,.55);
+  border:1px solid var(--parch-e); border-radius:var(--radius);
+  box-shadow:var(--shadow); overflow:hidden;
+}
+@media (min-width:48rem){
+  .warbox{ max-width:38rem; margin:0 auto 2.5rem; }
+}
+.warbox__head{
+  padding:1.1rem 1.25rem;
+  background:linear-gradient(135deg,var(--deep) 0%,var(--deep-d) 100%);
+  color:var(--parch); text-align:center; border-bottom:2px solid var(--gold);
+}
+.warbox__title{
+  margin:0; font-family:var(--display); font-size:1.6rem; font-weight:700;
+  color:var(--parch); line-height:1.2;
+}
+.warbox__dates{
+  margin:.35rem 0 0; font-size:.88rem; letter-spacing:.08em;
+  text-transform:uppercase; color:var(--gold-l);
+}
+.warbox__loc{
+  margin:.2rem 0 0; font-size:.92rem; color:var(--on-deep-2);
+  display:flex; align-items:center; justify-content:center; gap:.35rem;
+}
+.warbox__section-title{
+  margin:0; padding:.45rem 1rem; background:rgba(176,141,74,.18);
+  border-top:1px solid var(--parch-e); border-bottom:1px solid var(--parch-e);
+  font-family:var(--display); font-size:1.15rem; font-weight:700;
+  color:var(--deep); text-align:center; letter-spacing:.04em;
+}
+.warbox__cols{ display:grid; grid-template-columns:1fr 1fr; }
+.warbox__col{ padding:.85rem 1rem; min-width:0; }
+.warbox__col:first-child{ border-right:1px solid var(--parch-e); }
+.warbox__faction{ display:flex; align-items:center; gap:.5rem; margin-bottom:.4rem; }
+.warbox__flag{
+  width:.9rem; height:1.3rem; border-radius:1px; flex:none;
+  background:var(--flag,var(--moss)); box-shadow:0 1px 3px rgba(0,0,0,.3);
+}
+.warbox__fname{ font-family:var(--display); font-size:1.15rem; font-weight:700; color:var(--deep); line-height:1.2; }
+.warbox__allies-title{
+  font-size:.75rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3);
+  margin-top:.4rem; margin-bottom:.2rem;
+}
+.warbox__list{ list-style:none; margin:0; padding:0; display:grid; gap:.35rem; }
+.warbox__list li{ font-size:.92rem; line-height:1.4; color:var(--ink); }
+.warbox__cmd-name{ font-weight:600; color:var(--deep); }
+.warbox__cmd-title{ display:block; font-size:.78rem; color:var(--ink-3); line-height:1.25; }
+.warbox__dagger{ color:var(--wax); font-weight:700; margin-left:.25rem; }
+.warbox__result{
+  padding:.85rem 1.1rem; background:rgba(255,255,255,.7);
+  border-top:1px solid var(--parch-e); text-align:center;
+}
+.warbox__result-label{
+  font-size:.75rem; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3); margin-bottom:.25rem;
+}
+.warbox__result-text{
+  font-family:var(--display); font-size:1.2rem; font-weight:600; color:var(--deep); line-height:1.35;
+}
+
+/* ─────────────────────────── КАРТОЧКИ ВОЙН (WAR CARDS) ─────────────────────────── */
+.wcards{ display:grid; gap:.85rem; margin:0 0 2rem; }
+.wcard{
+  display:grid; gap:.5rem; padding:1.1rem 1.15rem; text-decoration:none; color:inherit;
+  border:1px solid var(--parch-e); border-left:4px solid var(--wax);
+  border-radius:var(--radius); background:rgba(255,255,255,.45);
+  transition:transform .16s,box-shadow .16s,border-color .16s;
+}
+.wcard:hover{ transform:translateY(-2px); box-shadow:var(--shadow); border-color:var(--gold); }
+.wcard__top{ display:flex; align-items:center; justify-content:space-between; gap:.75rem; flex-wrap:wrap; }
+.wcard__dates{ font-size:.8rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3); }
+.wcard__title{ font-family:var(--display); font-size:1.45rem; font-weight:700; color:var(--deep); line-height:1.2; }
+.wcard__versus{
+  display:flex; align-items:center; gap:.6rem; font-size:.95rem; font-weight:600;
+  color:var(--ink-2); padding:.35rem 0; flex-wrap:wrap;
+}
+.wcard__side{ display:flex; align-items:center; gap:.4rem; }
+.wcard__vs{ font-size:.8rem; font-style:italic; color:var(--wax); padding:0 .2rem; }
+.wcard__sum{ font-size:.95rem; color:var(--ink-2); line-height:1.5; }
+
 /* новости */
 .nlist{ display:grid; gap:.6rem; }
 .nitem{

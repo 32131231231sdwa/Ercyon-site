@@ -20,7 +20,7 @@ player: '@KrasnayaArmia'
 summary: Да станет великим Орсус!
 ---
 
-![Территория Княжеств](/img/uploads/IMG_1483.jpeg)
+![Территория Княжеств](/img/uploads/IMG_1483.webp)
 
 ## ИСТОРИЯ :
 

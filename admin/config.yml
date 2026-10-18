@@ -432,3 +432,86 @@ collections:
           - { label: Истёк, value: expired }
       - { name: summary, label: Короткое описание, widget: text, required: false }
       - { name: body, label: Текст договора, widget: markdown }
+
+  # ─────────────────────────── ВОЙНЫ И БИТВЫ ───────────────────────────
+  - name: wars
+    label: Войны и битвы
+    label_singular: войну
+    description: Хроника военных конфликтов с инфобоксами противоборствующих сторон и командующих.
+    folder: content/wars
+    create: true
+    slug: '{{fields.slug}}'
+    identifier_field: title
+    summary: '{{title}} · {{date}}'
+    fields:
+      - { name: title, label: Название войны / битвы, widget: string }
+      - { name: slug, label: Адрес, widget: string, pattern: ['^[a-z0-9-]+$', 'Только латиница, цифры и дефис'] }
+      - { name: order, label: Порядок в списке, widget: number, value_type: int, default: 100 }
+      - { name: date, label: Период / даты, widget: string, hint: 'Например: 1492–1495 гг. или Древняя эпоха' }
+      - { name: location, label: Театр военных действий, widget: string, required: false, hint: 'Например: Азерлийские Горы' }
+      - name: status
+        label: Состояние
+        widget: select
+        default: ended
+        options:
+          - { label: Завершена, value: ended }
+          - { label: Идёт война, value: active }
+          - { label: Перемирие, value: truce }
+      - { name: status_label, label: Подпись состояния, widget: string, required: false, hint: 'Например: Завершена (Победа Архонта)' }
+      - { name: result, label: Итог войны, widget: text, required: false, hint: 'Краткий итог, последствия или условия мира' }
+      - { name: summary, label: Краткое описание, widget: text, required: false }
+      - name: belligerents
+        label: Противоборствующие стороны
+        widget: object
+        fields:
+          - name: side_a
+            label: Сторона А (Инициатор / Атакующий / Фракция 1)
+            widget: object
+            fields:
+              - { name: name, label: Название фракции / страны, widget: string }
+              - { name: color, label: Геральдический цвет, widget: string, default: '#6B3A3F' }
+              - { name: allies, label: Союзники (При поддержке), widget: list, required: false, field: { name: item, label: Союзник, widget: string } }
+              - name: commanders
+                label: Командующие
+                widget: list
+                required: false
+                fields:
+                  - { name: name, label: Имя командующего, widget: string, hint: 'Можно ставить † для погибших' }
+                  - { name: title, label: Титул / Звание, widget: string, required: false }
+                  - name: status
+                    label: Статус в бою
+                    widget: select
+                    default: alive
+                    options:
+                      - { label: Жив, value: alive }
+                      - { label: Погиб (†), value: killed }
+                      - { label: Ранен / Казнён (#†), value: wounded }
+                      - { label: Пленён, value: captured }
+              - { name: forces, label: Силы стороны (численность, рода войск), widget: list, required: false, field: { name: item, label: Подразделение / Силы, widget: string } }
+              - { name: casualties, label: Потери, widget: list, required: false, field: { name: item, label: Потери, widget: string } }
+          - name: side_b
+            label: Сторона Б (Обороняющийся / Фракция 2)
+            widget: object
+            fields:
+              - { name: name, label: Название фракции / страны, widget: string }
+              - { name: color, label: Геральдический цвет, widget: string, default: '#3F4A52' }
+              - { name: allies, label: Союзники (При поддержке), widget: list, required: false, field: { name: item, label: Союзник, widget: string } }
+              - name: commanders
+                label: Командующие
+                widget: list
+                required: false
+                fields:
+                  - { name: name, label: Имя командующего, widget: string, hint: 'Можно ставить † для погибших' }
+                  - { name: title, label: Титул / Звание, widget: string, required: false }
+                  - name: status
+                    label: Статус в бою
+                    widget: select
+                    default: alive
+                    options:
+                      - { label: Жив, value: alive }
+                      - { label: Погиб (†), value: killed }
+                      - { label: Ранен / Казнён (#†), value: wounded }
+                      - { label: Пленён, value: captured }
+              - { name: forces, label: Силы стороны (численность, рода войск), widget: list, required: false, field: { name: item, label: Подразделение / Силы, widget: string } }
+              - { name: casualties, label: Потери, widget: list, required: false, field: { name: item, label: Потери, widget: string } }
+      - { name: body, label: Хроника и описание войны, widget: markdown }

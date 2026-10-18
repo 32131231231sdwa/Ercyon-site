@@ -284,12 +284,14 @@ function build() {
   const pageFiles = readDir('pages').filter(x => !x.front.draft);
   const countryFiles = readDir('countries').filter(x => !x.front.draft);
   const treatyFiles = readDir('treaties').filter(x => !x.front.draft);
+  const warFiles = readDir('wars').filter(x => !x.front.draft);
   const newsFiles = readDir('news').filter(x => !x.front.draft);
 
   /* Разделы, которых нет в настройках, разбираем до раскладки страниц:
      в меню их не будет, но адреса страниц должны остаться прежними. */
   const usedCats = new Set(pageFiles.map(x => x.front.category).filter(Boolean));
   if (countryFiles.length || treatyFiles.length) usedCats.add('countries');
+  if (warFiles.length) usedCats.add('lore');
   if (newsFiles.length) usedCats.add('news');
   const hiddenCats = hiddenCategories(S, usedCats);
 
@@ -367,6 +369,18 @@ function build() {
   });
   treaties.forEach(push);
 
+  /* — войны и битвы — */
+  const wars = warFiles.map(({ abs, front, body }) => {
+    const slug = front.slug || slugify(front.title);
+    const { html, toc } = polish(renderMarkdown(body));
+    return {
+      kind: 'war', title: front.title, slug, url: `/wars/${slug}/`,
+      category: catById.lore, order: Number(front.order ?? 100),
+      summary: front.summary || '', html, toc, updated: fileUpdated(abs, front), front,
+    };
+  }).sort((a, b) => (a.order ?? 100) - (b.order ?? 100) || a.title.localeCompare(b.title, 'ru'));
+  wars.forEach(push);
+
   /* — новости — */
   const news = newsFiles.map(({ file, abs, front, body }) => {
     const slug = front.slug || slugify(path.basename(file, '.md').replace(/^\d{4}-\d{2}-\d{2}-/, ''));
@@ -389,6 +403,9 @@ function build() {
     { kind: 'treaties-index', title: L('treaties.index_title', 'Реестр договоров'),
       url: '/treaties/', category: catById.countries, order: 30, inMenu: true,
       summary: L('treaties.index_menu_note', 'Пакты, союзы и то, что от них осталось.') },
+    { kind: 'wars-index', title: L('wars.index_title', 'Хроника войн и битв'),
+      url: '/wars/', category: catById.lore, order: 5, inMenu: true,
+      summary: L('wars.index_menu_note', 'Великие походы, восстания и военные конфликты.') },
     { kind: 'news-index', title: L('news.index_title', 'Мировые новости'),
       url: '/news/', category: catById.news, order: 10, inMenu: true,
       summary: L('news.index_menu_note', 'Что происходит в мире прямо сейчас.') },
@@ -422,7 +439,7 @@ function build() {
   fs.rmSync(DIST, { recursive: true, force: true });
   fs.mkdirSync(DIST, { recursive: true });
 
-  const ctx = { S, menu, docs, countries, treaties, news, buildTime: BUILD_TIME, L };
+  const ctx = { S, menu, docs, countries, treaties, wars, news, buildTime: BUILD_TIME, L };
   const write = (urlPath, html) => {
     const out = urlPath === '/'
       ? path.join(DIST, 'index.html')
@@ -447,9 +464,11 @@ function build() {
     if (d.kind === 'page') body = views.page(ctx, d);
     else if (d.kind === 'country') body = views.country(ctx, d);
     else if (d.kind === 'treaty') body = views.treaty(ctx, d);
+    else if (d.kind === 'war') body = views.war(ctx, d);
     else if (d.kind === 'news') body = views.newsItem(ctx, d);
     else if (d.kind === 'countries-index') body = views.countriesIndex(ctx);
     else if (d.kind === 'treaties-index') body = views.treatiesIndex(ctx);
+    else if (d.kind === 'wars-index') body = views.warsIndex(ctx);
     else if (d.kind === 'news-index') body = views.newsIndex(ctx);
     write(d.url, renderPage(ctx, { ...d, body }));
   }
@@ -470,7 +489,7 @@ function build() {
   /* — поисковый индекс — */
   const index = [
     { u: '/', t: S.site_title, c: 'Главная', s: S.description || '', x: plainText(homeDoc.html) },
-    ...docs.filter(d => d.kind !== 'countries-index' && d.kind !== 'treaties-index' && d.kind !== 'news-index')
+    ...docs.filter(d => d.kind !== 'countries-index' && d.kind !== 'treaties-index' && d.kind !== 'wars-index' && d.kind !== 'news-index')
       .map(d => ({
         u: d.url, t: d.title, c: d.category?.title || '', s: d.summary || '',
         h: (d.toc || []).map(x => x.text).join(' \u00b7 '),   // заголовки внутри страницы
