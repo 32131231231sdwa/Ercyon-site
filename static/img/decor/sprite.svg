@@ -264,6 +264,36 @@
   <path class="ico-l" d="M12 7.2V12l3.2 2"/>
 </symbol>
 
+<symbol id="i-candle" viewBox="0 0 24 24">
+  <path class="ico-l" d="M8.5 11h7v10.5h-7z"/>
+  <path class="ico-l" d="M6 21.5h12"/>
+  <path class="ico-l" d="M12 11V8"/>
+  <path class="ico-f" d="M12 2.4c-1.3 1.6-1.5 2.6-.4 3.9.8.9 1 .9 1 .9s.2 0 1-.9c1.1-1.3.9-2.3-.4-3.9-.3-.5-.9-.5-1.2 0z"/>
+</symbol>
+
+<symbol id="i-zoom-in" viewBox="0 0 24 24">
+  <circle class="ico-l" cx="10.5" cy="10.5" r="7"/>
+  <path class="ico-l" d="m16 16 5.5 5.5M10.5 7.5v6M7.5 10.5h6"/>
+</symbol>
+
+<symbol id="i-zoom-out" viewBox="0 0 24 24">
+  <circle class="ico-l" cx="10.5" cy="10.5" r="7"/>
+  <path class="ico-l" d="m16 16 5.5 5.5M7.5 10.5h6"/>
+</symbol>
+
+<symbol id="i-reset" viewBox="0 0 24 24">
+  <path class="ico-l" d="M3.5 12a8.5 8.5 0 1 0 2.5-6L3.5 8.5"/>
+  <path class="ico-l" d="M3.5 3.5v5h5"/>
+</symbol>
+
+<symbol id="i-expand" viewBox="0 0 24 24">
+  <path class="ico-l" d="M15 3.5h5.5V9M9 20.5H3.5V15M20.5 3.5l-6.5 6.5M3.5 20.5l6.5-6.5"/>
+</symbol>
+
+<symbol id="i-filter" viewBox="0 0 24 24">
+  <path class="ico-l" d="M3.5 4.5h17l-6.8 7.8v7.2l-3.4-1.8v-5.4z"/>
+</symbol>
+
 <!-- ═════════════ ДЕКОР ═════════════ -->
 
 <symbol id="d-vine" viewBox="0 0 60 300" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">

@@ -31,6 +31,7 @@ labels:
     empty: Первая держава ещё не основана.
     cta: Основать свою страну
     treaties_title: Договоры с участием державы
+    wars_title: Военные конфликты с участием державы
     status_active: Действует
     status_neutral: Нейтралитет
     status_fallen: Пала

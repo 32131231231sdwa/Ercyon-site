@@ -27,3 +27,82 @@ summary: Что представляет из себя душа, легенды 
 Ошибкой было бы представить, что состояния души это дискретные ячейки — нет. Они градиент. Отреид может быть более стабилен, как и человек или эльф будучи Атреидом может быть менее стабилен.
 
 Тело в Эрционе не является источником сознания или души — скорее, это материальный механизм, через который душа может существовать и взаимодействовать с окружающим миром. Органы и мозг необходимы для поддержания этой связи: они позволяют душе воспринимать мир, действовать в нём и сохранять свою оболочку. Поэтому смерть тела в конечном итоге означает и смерть души, однако этот процесс не происходит мгновенно. После разрушения тела сама душа ещё некоторое время сохраняется в пространстве в виде энергии, постепенно рассеиваясь и становясь почти неощутимой. Обычно эта остаточная энергия никак себя не проявляет, но при её большой концентрации она способна воздействовать на другие души. Она может питать их, усиливая или поддерживая, пробуждать их из неактивного состояния либо, наоборот, нарушать их структуру и разрушать. При этом влияние зависит от самой энергии: нестабильная, стабильная и плотная душа оставляют после себя энергию с разными свойствами. Поэтому смерть множества существ или гибель особенно сильной души способна изменить окружающее пространство и повлиять на состояние других существ.
+
+## Механика Живицы и Круг живичников
+
+Каждому правителю на старте сезона даётся **круг из трёх живичников**. У каждого — запас в **30 жизненных вёсен** («зелёное время»). Весна — это год чистой силы души, отданный в обмен на изменение мира. Она не восстанавливается отдыхом. Когда вёсны иссякают, маг погружается в **сухоту**: седеет за месяц, теряет чувства вкуса и запаха и навсегда покидает круг заклинателей.
+
+Используйте интерактивный круг ниже, чтобы вести учёт своего ордена или персонажа:
+
+<div class="zhivica-calc" id="zhivicaCalc">
+  <div class="zhivica-calc__head">
+    <div>
+      <h3 class="zhivica-calc__title">
+        <svg class="ico" aria-hidden="true" style="color:var(--moss);"><use href="#i-leaf"/></svg>
+        Круг Живичников Державы
+      </h3>
+      <p class="zhivica-calc__sub">Учёт расхода жизненных вёсен и стадий сухоты духа</p>
+    </div>
+  </div>
+
+  <div class="zhivica-calc__mages" role="tablist" aria-label="Маги круга">
+    <button type="button" class="zhivica-mage-tab is-active" role="tab" data-mage="0">
+      <span class="zhivica-mage-tab__name">Старший живичник</span>
+      <span class="zhivica-mage-tab__count">30 вёсен</span>
+    </button>
+    <button type="button" class="zhivica-mage-tab" role="tab" data-mage="1">
+      <span class="zhivica-mage-tab__name">Второй живичник</span>
+      <span class="zhivica-mage-tab__count">30 вёсен</span>
+    </button>
+    <button type="button" class="zhivica-mage-tab" role="tab" data-mage="2">
+      <span class="zhivica-mage-tab__name">Младший живичник</span>
+      <span class="zhivica-mage-tab__count">30 вёсен</span>
+    </button>
+  </div>
+
+  <div class="zhivica-calc__meter">
+    <div class="zhivica-meter__top">
+      <div>
+        <span class="zhivica-meter__val">30</span>
+        <span class="zhivica-meter__max">/ 30 вёсен</span>
+      </div>
+      <div class="zhivica-meter__state">🌿 Цветение духа</div>
+    </div>
+    <div class="zhivica-meter__bar">
+      <div class="zhivica-meter__fill" style="width: 100%;"></div>
+    </div>
+    <p class="zhivica-meter__note">Полная сила и юность духа. Живица течёт свободно, ясный взор и твёрдая рука.</p>
+  </div>
+
+  <div class="zhivica-calc__spells">
+    <button type="button" class="zhivica-spell-btn" data-cost="1" data-name="Малое заклятье">
+      <span class="zhivica-spell-btn__cost">−1 весна</span>
+      <span class="zhivica-spell-btn__name">Малое заклятье</span>
+      <span class="zhivica-spell-btn__desc">Шёпот на ветру, искра, врачевание мелких ссадин, поиск жилы.</span>
+    </button>
+    <button type="button" class="zhivica-spell-btn" data-cost="3" data-name="Среднее заклятье">
+      <span class="zhivica-spell-btn__cost">−3 весны</span>
+      <span class="zhivica-spell-btn__name">Среднее заклятье</span>
+      <span class="zhivica-spell-btn__desc">Огненный вал, каменный заслон, густой речной туман, прорыв строя.</span>
+    </button>
+    <button type="button" class="zhivica-spell-btn" data-cost="7" data-name="Великое заклятье">
+      <span class="zhivica-spell-btn__cost">−7 вёсен</span>
+      <span class="zhivica-spell-btn__name">Великое заклятье</span>
+      <span class="zhivica-spell-btn__desc">Буря над проливом, иссушение посевов врага, сокрушение стен крепости.</span>
+    </button>
+    <button type="button" class="zhivica-spell-btn" data-cost="9" data-name="Ритуал без ступени III">
+      <span class="zhivica-spell-btn__cost">−9 вёсен</span>
+      <span class="zhivica-spell-btn__name">Отчаянный ритуал</span>
+      <span class="zhivica-spell-btn__desc">Предельное усилие без ступени Живицы III. Риск моментальной сухоты.</span>
+    </button>
+  </div>
+
+  <div class="zhivica-calc__actions">
+    <button type="button" class="zhivica-act-btn" id="zhivicaUndo">↩ Откатить заклятье</button>
+    <button type="button" class="zhivica-act-btn" id="zhivicaReset">⟲ Восстановить круг (30 вёсен)</button>
+  </div>
+
+  <div class="zhivica-calc__history">
+    <span class="muted">Летопись заклятий круга пуста. Сотворите заклятье…</span>
+  </div>
+</div>

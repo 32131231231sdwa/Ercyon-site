@@ -58,6 +58,11 @@ export function humanDate(iso) {
   return `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
 }
 
+export function readingTime(text) {
+  const words = (text || '').replace(/<[^>]+>/g, ' ').replace(/[^\wа-яёА-ЯЁ0-9]+/g, ' ').trim().split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.ceil(words / 180));
+}
+
 /** Дата последней правки файла: сначала из git, иначе из шапки, иначе дата сборки. */
 const BUILD_TIME = new Date();
 
@@ -342,6 +347,7 @@ function build() {
       kind: 'page', title: front.title || slug, slug, url: urlPath, category: cat,
       order: Number(front.order ?? 100), summary: front.summary || '',
       html, toc, updated: fileUpdated(abs, front), front, inMenu: true,
+      readingTime: readingTime(plainText(html)),
     });
   }
 
@@ -353,6 +359,7 @@ function build() {
       kind: 'country', title: front.title, slug, url: `/countries/${slug}/`,
       category: catById.countries, order: Number(front.order ?? 100),
       summary: front.summary || '', html, toc, updated: fileUpdated(abs, front), front,
+      readingTime: readingTime(plainText(html)),
     };
   }).sort((a, b) => a.order - b.order || a.title.localeCompare(b.title, 'ru'));
   countries.forEach(push);
@@ -365,6 +372,7 @@ function build() {
       kind: 'treaty', title: front.title, slug, url: `/treaties/${slug}/`,
       category: catById.countries, summary: front.summary || '',
       html, toc, updated: fileUpdated(abs, front), front,
+      readingTime: readingTime(plainText(html)),
     };
   });
   treaties.forEach(push);
@@ -377,6 +385,7 @@ function build() {
       kind: 'war', title: front.title, slug, url: `/wars/${slug}/`,
       category: catById.lore, order: Number(front.order ?? 100),
       summary: front.summary || '', html, toc, updated: fileUpdated(abs, front), front,
+      readingTime: readingTime(plainText(html)),
     };
   }).sort((a, b) => (a.order ?? 100) - (b.order ?? 100) || a.title.localeCompare(b.title, 'ru'));
   wars.forEach(push);
@@ -391,6 +400,7 @@ function build() {
       date: front.date ? new Date(front.date) : fileUpdated(abs, front),
       author: front.author || L('news.default_author', 'Хронист'), newsKind: front.kind || 'world',
       html, toc, updated: fileUpdated(abs, front), front,
+      readingTime: readingTime(plainText(html)),
     };
   }).sort((a, b) => b.date - a.date);
   news.forEach(push);

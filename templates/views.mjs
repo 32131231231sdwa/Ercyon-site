@@ -5,13 +5,50 @@
 import { esc, humanDate } from '../build.mjs';
 import { icon, stateClass } from './layout.mjs';
 
-const head = (title, sub) => `<header class="phead">
+const head = (title, sub, time) => `<header class="phead">
   <h1>${esc(title)}</h1>
   ${sub ? `<p class="phead__sub">${esc(sub)}</p>` : ''}
+  ${time ? `<p class="phead__meta"><span class="phead__time">${icon('i-clock', 'ico ico--sm')} ~${time} мин чтения</span></p>` : ''}
   <svg class="phead__rule" aria-hidden="true"><use href="#d-flourish"/></svg>
 </header>`;
 
 const prose = html => `<div class="prose">${html}</div>`;
+
+export function shareBox(ctx, doc) {
+  const { S } = ctx;
+  const base = (S.site_url || '').replace(/\/$/, '');
+  const url = encodeURIComponent(`${base}${doc.url}`);
+  const text = encodeURIComponent(`${doc.title} — ${doc.summary || S.site_title}`);
+  return `
+<aside class="share-box" aria-label="Поделиться хроникой">
+  <span class="share-box__label">Летопись открыта миру:</span>
+  <a class="share-btn share-btn--tg" href="https://t.me/share/url?url=${url}&text=${text}" target="_blank" rel="noopener noreferrer">
+    ${icon('i-telegram', 'ico ico--sm')}
+    <span>Поделиться в Telegram</span>
+  </a>
+</aside>`;
+}
+
+export function relatedChronicles(ctx, currentDoc) {
+  if (!currentDoc.category) return '';
+  const rel = ctx.docs.filter(d =>
+    d.url !== currentDoc.url &&
+    d.kind !== 'countries-index' && d.kind !== 'treaties-index' && d.kind !== 'wars-index' && d.kind !== 'news-index' && d.kind !== 'search' &&
+    (d.category?.id === currentDoc.category?.id || (currentDoc.kind === 'war' && d.kind === 'country') || (currentDoc.kind === 'country' && d.kind === 'war'))
+  ).slice(0, 3);
+
+  if (!rel.length) return '';
+  return `
+<section class="related">
+  <h2 class="h-sec">Связанные хроники</h2>
+  <div class="tiles">${rel.map(d => `
+    <a class="tile" href="${d.url}">
+      <span class="tile__title">${esc(d.title)}</span>
+      ${d.summary ? `<span class="tile__sum">${esc(d.summary)}</span>` : ''}
+      <span class="tile__go">${icon('i-arrow', 'ico ico--sm')}</span>
+    </a>`).join('')}</div>
+</section>`;
+}
 
 const countryStatus = (L, key) => ({
   active:  { label: L('countries.status_active',  'Действует'),   cls: 'ok'  },
@@ -164,7 +201,10 @@ ${doc.html ? `<section class="homeprose">${prose(doc.html)}</section>` : ''}
 /* ═══════════════════════ ОБЫЧНАЯ СТРАНИЦА ═══════════════════════ */
 
 export function page(ctx, d) {
-  return head(d.title, d.summary) + prose(d.html);
+  return head(d.title, d.summary, d.readingTime)
+    + prose(d.html)
+    + shareBox(ctx, d)
+    + relatedChronicles(ctx, d);
 }
 
 /* ═══════════════════════ ОБЗОР КАТЕГОРИИ ═══════════════════════ */
@@ -215,14 +255,76 @@ export function countriesIndex(ctx) {
       (cta ? `<p class="cta-line">${cta}</p>` : '');
   }
 
+  // Уникальные ресурсы без скобок с количеством
+  const allRes = new Set();
+  countries.forEach(c => {
+    const list = Array.isArray(c.front.resources) ? c.front.resources : (c.front.resources ? [c.front.resources] : []);
+    list.forEach(r => {
+      const clean = String(r).replace(/\s*\(\d+\)\s*$/, '').trim();
+      if (clean) allRes.add(clean);
+    });
+  });
+  const resList = [...allRes].sort((a, b) => a.localeCompare(b, 'ru'));
+
+  const activeCount = countries.filter(c => (c.front.status || 'active') === 'active').length;
+  const neutralCount = countries.filter(c => c.front.status === 'neutral').length;
+  const fallenCount = countries.filter(c => c.front.status === 'fallen').length;
+
+  const filterBar = `
+<div class="cfilter" id="cfilter">
+  <div class="cfilter__search">
+    ${icon('i-search', 'ico')}
+    <input type="search" id="cSearchInput" placeholder="Поиск по державе, правителю, столице…" autocomplete="off" spellcheck="false">
+  </div>
+  <div class="cfilter__row">
+    <div class="cfilter__pills" role="radiogroup" aria-label="Фильтр по статусу">
+      <button type="button" class="cfilter__pill is-active" data-status="all">Все <span class="cfilter__count">${countries.length}</span></button>
+      <button type="button" class="cfilter__pill" data-status="active">🟢 Действует <span class="cfilter__count">${activeCount}</span></button>
+      ${neutralCount ? `<button type="button" class="cfilter__pill" data-status="neutral">🟡 Нейтралитет <span class="cfilter__count">${neutralCount}</span></button>` : ''}
+      ${fallenCount ? `<button type="button" class="cfilter__pill" data-status="fallen">🔴 Пала <span class="cfilter__count">${fallenCount}</span></button>` : ''}
+    </div>
+    <div class="cfilter__selects">
+      <div class="cfilter__select-wrap">
+        ${icon('i-leaf', 'ico ico--sm')}
+        <select id="cResourceSelect" aria-label="Фильтр по ресурсам">
+          <option value="">Все ресурсы (${resList.length})</option>
+          ${resList.map(r => `<option value="${esc(r.toLowerCase())}">${esc(r)}</option>`).join('')}
+        </select>
+      </div>
+      <div class="cfilter__select-wrap">
+        ${icon('i-scales', 'ico ico--sm')}
+        <select id="cSortSelect" aria-label="Сортировка держав">
+          <option value="order">По летописному порядку</option>
+          <option value="name">По названию (А–Я)</option>
+          <option value="pop">По населению (убыв.)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  <div class="cfilter__status" id="cFilterStatus">Показано держав: <strong>${countries.length}</strong> из ${countries.length}</div>
+</div>`;
+
   const cards = countries.map(c => {
-    const st = countryStatus(L, c.front.status);
-    return `<a class="ccard" href="${c.url}" style="--flag:${esc(c.front.color || '#3E6B4F')}">
+    const f = c.front || {};
+    const st = countryStatus(L, f.status);
+    const res = Array.isArray(f.resources) ? f.resources : (f.resources ? [f.resources] : []);
+    const resTokens = res.map(r => String(r).replace(/\s*\(\d+\)\s*$/, '').trim().toLowerCase()).join(';');
+    const popNum = parseInt(String(f.population || '0').replace(/[^\d]/g, ''), 10) || 0;
+
+    return `<a class="ccard" href="${c.url}"
+      style="--flag:${esc(f.color || '#3E6B4F')}"
+      data-title="${esc(c.title.toLowerCase())}"
+      data-ruler="${esc((f.ruler || '').toLowerCase())}"
+      data-capital="${esc((f.capital || '').toLowerCase())}"
+      data-status="${esc(f.status || 'active')}"
+      data-resources="${esc(resTokens)}"
+      data-pop="${popNum}"
+      data-order="${c.order ?? 100}">
       <span class="ccard__flag" aria-hidden="true"></span>
       <span class="ccard__main">
         <span class="ccard__title">${esc(c.title)}</span>
-        <span class="ccard__meta">${esc(c.front.government || '')}${
-          c.front.capital ? ` · ${esc(c.front.capital)}` : ''}</span>
+        <span class="ccard__meta">${esc(f.government || '')}${
+          f.capital ? ` · ${esc(f.capital)}` : ''}</span>
         <span class="ccard__sum">${esc(c.summary || '')}</span>
       </span>
       <span class="pill pill--${st.cls}">${esc(st.label)}</span>
@@ -231,7 +333,8 @@ export function countriesIndex(ctx) {
 
   return head(title, L('countries.index_note', ''))
     + subnav
-    + `<div class="ccards">${cards}</div>`
+    + filterBar
+    + `<div class="ccards" id="cCardsGrid">${cards}</div>`
     + (cta ? `<p class="cta-line">${cta}</p>` : '');
 }
 
@@ -253,12 +356,25 @@ export function country(ctx, d) {
   const linked = ctx.treaties.filter(t =>
     Array.isArray(t.front.parties) && t.front.parties.some(p => String(p).trim() === d.title.trim()));
 
+  const countryWars = (ctx.wars || []).filter(w => {
+    const b = w.front?.belligerents || {};
+    const t = d.title.trim().toLowerCase();
+    const nameA = String(b.side_a?.name || '').toLowerCase();
+    const nameB = String(b.side_b?.name || '').toLowerCase();
+    const alliesA = Array.isArray(b.side_a?.allies) ? b.side_a.allies.map(a => String(a).toLowerCase()) : [];
+    const alliesB = Array.isArray(b.side_b?.allies) ? b.side_b.allies.map(a => String(a).toLowerCase()) : [];
+    return nameA.includes(t) || nameB.includes(t) || alliesA.some(a => a.includes(t)) || alliesB.some(a => a.includes(t));
+  });
+
   return `
 <header class="phead phead--country" style="--flag:${esc(f.color || '#3E6B4F')}">
   <span class="phead__banner" aria-hidden="true">${icon('i-banner', 'ico ico--xl')}</span>
   <h1>${esc(d.title)}</h1>
   ${d.summary ? `<p class="phead__sub">${esc(d.summary)}</p>` : ''}
-  <span class="pill pill--${st.cls}">${esc(st.label)}</span>
+  <div class="phead__meta">
+    <span class="pill pill--${st.cls}">${esc(st.label)}</span>
+    ${d.readingTime ? `<span class="phead__time">${icon('i-clock', 'ico ico--sm')} ~${d.readingTime} мин чтения</span>` : ''}
+  </div>
 </header>
 
 <section class="passport">
@@ -279,6 +395,25 @@ ${linked.length ? `<section class="related">
       <span class="pill pill--${ts.cls}">${esc(ts.label)}</span></a>`;
   }).join('')}</div>
 </section>` : ''}
+
+${countryWars.length ? `<section class="related">
+  <h2 class="h-sec">${esc(L('countries.wars_title', 'Военные конфликты с участием державы'))}</h2>
+  <div class="wcards">${countryWars.map(w => {
+    const wf = w.front || {};
+    const wst = warStatus(L, wf.status);
+    return `<a class="wcard" href="${w.url}">
+      <div class="wcard__top">
+        <span class="wcard__title">${esc(w.title)}</span>
+        <span class="pill pill--${wst.cls}">${esc(wf.status_label || wst.label)}</span>
+      </div>
+      ${wf.date ? `<div class="wcard__dates">${esc(wf.date)}</div>` : ''}
+      <div class="wcard__sum">${esc(w.summary || '')}</div>
+    </a>`;
+  }).join('')}</div>
+</section>` : ''}
+
+${shareBox(ctx, d)}
+${relatedChronicles(ctx, d)}
 `;
 }
 
@@ -410,10 +545,11 @@ export function war(ctx, d) {
   <span class="phead__banner" aria-hidden="true">${icon('i-sword', 'ico ico--xl')}</span>
   <h1>${esc(d.title)}</h1>
   ${d.summary ? `<p class="phead__sub">${esc(d.summary)}</p>` : ''}
-  <p class="phead__meta">
+  <div class="phead__meta">
     <span class="pill pill--${st.cls}">${esc(f.status_label || st.label)}</span>
     ${f.date ? `<span class="phead__date">${esc(L('wars.date_prefix', 'Период:'))} ${esc(f.date)}</span>` : ''}
-  </p>
+    ${d.readingTime ? `<span class="phead__time">${icon('i-clock', 'ico ico--sm')} ~${d.readingTime} мин чтения</span>` : ''}
+  </div>
 </header>
 
 <div class="warbox">
@@ -458,6 +594,9 @@ export function war(ctx, d) {
 </div>
 
 ${prose(d.html)}
+
+${shareBox(ctx, d)}
+${relatedChronicles(ctx, d)}
 
 <p class="cta-line">
   <a class="btn btn--ghost" href="/wars/">${esc(L('wars.back', '← Ко всем войнам'))}</a>
@@ -530,18 +669,20 @@ export function newsItem(ctx, d) {
   const { L } = ctx;
   return `
 <header class="phead phead--news">
-  <p class="phead__meta">
+  <div class="phead__meta">
     <time datetime="${d.date.toISOString()}">${humanDate(d.date)}</time>
     <span class="dot">·</span>
     <span>${esc(d.author)}</span>
     ${d.newsKind === 'press'
       ? `<span class="pill pill--mid">${esc(L('news.press_badge', 'Газета игроков'))}</span>` : ''}
-  </p>
+    ${d.readingTime ? `<span class="phead__time">${icon('i-clock', 'ico ico--sm')} ~${d.readingTime} мин чтения</span>` : ''}
+  </div>
   <h1>${esc(d.title)}</h1>
   ${d.summary ? `<p class="phead__sub">${esc(d.summary)}</p>` : ''}
   <svg class="phead__rule" aria-hidden="true"><use href="#d-flourish"/></svg>
 </header>
 ${prose(d.html)}
+${shareBox(ctx, d)}
 <p class="cta-line"><a class="btn btn--ghost" href="/news/">${
   esc(L('news.back', '← Ко всем новостям'))}</a></p>`;
 }
