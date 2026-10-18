@@ -178,12 +178,16 @@ function polish(html) {
     const extra = imgAttrs((tag.match(/\ssrc="([^"]*)"/) || [, ''])[1]);
     return extra ? tag.replace(/<img\s/, `<img${extra} `) : tag;
   });
-  html = html.replace(/<p>(<img [^>]+>)<\/p>/g, (_, img) => {
+  html = html.replace(/<p>(?:<a\s+([^>]+)>)?(<img [^>]+>)(?:<\/a>)?<\/p>/g, (_, aAttrs, img) => {
+    const src = (img.match(/src="([^"]*)"/) || [, ''])[1];
     const alt = (img.match(/alt="([^"]*)"/) || [, ''])[1];
     const title = (img.match(/title="([^"]*)"/) || [, ''])[1];
     const cap = title || alt;
     const tag = img.replace('<img ', '<img loading="lazy" decoding="async" ');
-    return `<figure class="fig">${tag}${cap ? `<figcaption>${cap}</figcaption>` : ''}</figure>`;
+    const wrapped = aAttrs
+      ? `<a ${aAttrs}>${tag}</a>`
+      : (src ? `<a class="fig__link" href="${src}" target="_blank" rel="noopener" title="Открыть в полном размере">${tag}</a>` : tag);
+    return `<figure class="fig">${wrapped}${cap ? `<figcaption>${cap}</figcaption>` : ''}</figure>`;
   });
   html = html.replace(/<img (?![^>]*loading)/g, '<img loading="lazy" decoding="async" ');
 

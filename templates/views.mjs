@@ -223,6 +223,7 @@ export function countriesIndex(ctx) {
     ${icon('i-search', 'ico')}
     <input type="search" id="cSearchInput" placeholder="Поиск по державе, правителю, столице, ресурсам…" autocomplete="off" spellcheck="false" aria-label="Поиск по каталогу держав">
   </div>
+  <div class="cfilter__count" id="cFilterCount" aria-live="polite"></div>
 </div>`;
 
   const cards = countries.map(c => {

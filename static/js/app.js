@@ -302,15 +302,30 @@ window.ercionInit = () => {
     const cardsGrid = $('#cCardsGrid');
     const cards = cardsGrid ? $$('.ccard', cardsGrid) : [];
 
+    const countEl = $('#cFilterCount');
+
     sInput?.addEventListener('input', () => {
       const q = norm(sInput.value);
       const tokens = q.split(/\s+/).filter(Boolean);
+      let matched = 0;
       cards.forEach(card => {
         const text = norm((card.textContent || '') + ' ' + (card.getAttribute('data-resources') || ''));
         const match = !tokens.length || tokens.every(t => text.includes(t));
         card.style.display = match ? '' : 'none';
-        if (match) card.classList.add('is-visible');
+        if (match) {
+          card.classList.add('is-visible');
+          matched++;
+        }
       });
+      if (countEl) {
+        if (!tokens.length) {
+          countEl.textContent = '';
+        } else if (matched === 0) {
+          countEl.textContent = 'Ничего не найдено по вашему запросу.';
+        } else {
+          countEl.textContent = `Показано держав: ${matched} из ${cards.length}`;
+        }
+      }
     });
   }
 };

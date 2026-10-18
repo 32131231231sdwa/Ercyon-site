@@ -392,6 +392,10 @@ body.nav-open .scrim{ opacity:1; }
 .fig{ margin:1.6em 0; }
 .fig img{ width:100%; border-radius:var(--radius); border:1px solid var(--parch-e); box-shadow:var(--shadow); }
 .fig figcaption{ margin-top:.5rem; font-size:.88rem; color:var(--ink-3); font-style:italic; text-align:center; }
+.fig__link{ display:block; text-decoration:none; position:relative; cursor:zoom-in; }
+.fig__link:active{ transform:scale(.99); }
+.map-actions{ margin:1rem 0 1.5rem; display:flex; }
+.map-actions .btn{ width:100%; justify-content:center; }
 
 .rule{ display:flex; justify-content:center; margin:2.2em 0; }
 .rule svg{ width:min(20rem,80%); height:2.1rem; color:var(--gold); }
@@ -723,14 +727,16 @@ body.nav-open .scrim{ opacity:1; }
 
 /* ─────────────────────────── ПЕРЕКЛЮЧАТЕЛЬ РАЗДЕЛОВ (SUBNAV) ─────────────────────────── */
 .subnav{
-  display:flex; align-items:center; gap:.5rem; margin:0 0 1.75rem;
-  padding:.35rem; background:rgba(255,255,255,.45);
+  display:flex; align-items:center; gap:.4rem; margin:0 0 1.75rem;
+  padding:.3rem; background:rgba(255,255,255,.45);
   border:1px solid var(--parch-e); border-radius:var(--radius);
-  box-shadow:inset 0 1px 3px rgba(0,0,0,.05); flex-wrap:wrap;
+  box-shadow:inset 0 1px 3px rgba(0,0,0,.05);
 }
 .subnav__item{
-  display:flex; align-items:center; gap:.55rem; padding:.5rem 1rem;
-  text-decoration:none; font-family:var(--display); font-size:1.15rem; font-weight:600;
+  flex:1 1 0; justify-content:center; text-align:center;
+  display:flex; align-items:center; gap:.5rem; padding:.55rem .75rem;
+  min-height:var(--tap);
+  text-decoration:none; font-family:var(--display); font-size:1.1rem; font-weight:600;
   color:var(--ink-2); border-radius:calc(var(--radius) - 2px);
   border:1px solid transparent; transition:all .16s ease;
 }
@@ -739,6 +745,7 @@ body.nav-open .scrim{ opacity:1; }
   color:var(--deep); background:var(--parch); border-color:var(--gold);
   box-shadow:0 2px 6px rgba(8,24,18,.08);
 }
+.subnav__item:active{ transform:scale(.98); }
 .subnav__count{
   display:inline-flex; align-items:center; justify-content:center;
   min-width:1.35rem; height:1.35rem; padding:0 .35rem; border-radius:99px;
@@ -806,6 +813,16 @@ body.nav-open .scrim{ opacity:1; }
 }
 .warbox__result-text{
   font-family:var(--display); font-size:1.2rem; font-weight:600; color:var(--deep); line-height:1.35;
+}
+@media (max-width:34rem){
+  .warbox__head{ padding:.9rem .9rem; }
+  .warbox__title{ font-size:1.35rem; }
+  .warbox__col{ padding:.75rem .6rem; }
+  .warbox__fname{ font-size:1.05rem; }
+  .warbox__list li{ font-size:.88rem; }
+  .warbox__cmd-title{ font-size:.74rem; }
+  .warbox__result{ padding:.75rem .9rem; }
+  .warbox__result-text{ font-size:1.1rem; }
 }
 
 /* ─────────────────────────── КАРТОЧКИ ВОЙН (WAR CARDS) ─────────────────────────── */
@@ -1078,6 +1095,16 @@ body.nav-open .scrim{ opacity:1; }
   border-color: var(--gold);
   box-shadow: var(--ring);
   outline: none;
+}
+.cfilter__count {
+  font-size: .88rem;
+  color: var(--ink-3);
+  font-style: italic;
+  margin-top: .45rem;
+  min-height: 1.25rem;
+}
+.btn:active, .card:active, .wcard:active, .ccard:active, .tile:active, .nitem:active {
+  transform: scale(.985);
 }
 
 @media print{
