@@ -1,6 +1,6 @@
 ---
 title: V. Локации Подземелья
-category: lore
+category: season
 order: 6
 slug: location
 summary: Что таит в себе сие подземелье.
