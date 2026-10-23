@@ -1,6 +1,6 @@
 ---
 title: IV. Подводка
-category: lore
+category: season
 order: 4
 slug: podv
 summary: О человеке искавшего правосудие.
