@@ -1,9 +1,9 @@
 ---
 title: Империя Новус
 slug: novus
-order: 1
+order: 2
 ruler: Император Медрин II
-government: Монархия при Парламенте
+government: Монархия при Сенате
 capital: Аврелия
 founded: ~ 1200-х
 population: 464 000
@@ -20,7 +20,7 @@ magic: ''
 status: active
 color: '#2F5D62'
 player: '@buliba337'
-summary: Империя перемен! От преодоления Красной чумы к возрождению континентального величия.
+summary: Империя неизвестности.
 ---
 
 ![Карта Империи Новус — начала 1502 г.](/img/uploads/IMG_1541.webp)
