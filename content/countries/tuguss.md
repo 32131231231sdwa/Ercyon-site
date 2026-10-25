@@ -1,12 +1,12 @@
 ---
-title: Айсгард/Тунгусская Империя
-slug: tuguss
+title: Айсгард
+slug: ausgard
 order: 1
-ruler: Ульфа дочь Рагнара / Нотаир и Княжеские Советы
+ruler: Ульфа I
 government: Абсолютная Монархия
-capital: Бодужьё
+capital: Альдаборг
 founded: 1200-е
-population: 301 000
+population: 298 000
 resources:
   - Железо (1)
   - Меллит (1)
@@ -22,10 +22,10 @@ magic: ''
 status: active
 color: '#6B4A6B'
 player: '@Kaiwozer'
-summary: Похоже конец?
+summary: Тунгусские земли под игом ереси?
 ---
 
-![Территория Империи ](/img/uploads/IMG_1499.webp)
+![Территория Империи](/img/uploads/IMG_1971.jpeg)
 
 ## ИСТОРИЯ:
 
@@ -33,4 +33,6 @@ summary: Похоже конец?
 
 ## ЧЕГО ДОБИВАЕТСЯ:
 
-Каждый своего.
+Своего.
+
+![Знамя Империи](/img/uploads/IMG_1928.jpeg)
