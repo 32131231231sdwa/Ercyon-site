@@ -22,10 +22,12 @@ magic: ''
 status: active
 color: '#6B4A6B'
 player: '@Kaiwozer'
-summary: Тунгусские земли под игом ереси?
+summary: ''
 ---
 
-![Территория Империи](/img/uploads/IMG_1971.jpeg)
+![Территория Империи](/img/uploads/%D0%91%D0%B5%D0%B7%20%D0%BD%D0%B0%D0%B7%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F99_20261028210107.png)
+
+![Карта Князей не принявших Айсгард](/img/uploads/%D0%91%D0%B5%D0%B7%20%D0%BD%D0%B0%D0%B7%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F99_20261028210246.png)
 
 ## ИСТОРИЯ:
 
@@ -35,4 +37,4 @@ summary: Тунгусские земли под игом ереси?
 
 Своего.
 
-![Знамя Империи](/img/uploads/IMG_1928.jpeg)
+![Знамя Империи](/img/uploads/%D0%91%D0%B5%D0%B7%20%D0%BD%D0%B0%D0%B7%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F98_20261028204150.png)
