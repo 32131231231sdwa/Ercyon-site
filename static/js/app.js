@@ -12,8 +12,11 @@ window.ercionInit = () => {
   const burger = $('#burger');
   const scrim  = $('#scrim');
   const sidebar= $('#sidebar');
+  const moreNav = $('#moreNav');
+  let navReturnFocus;
 
   const setNav = open => {
+    if (open) navReturnFocus = document.activeElement;
     body.classList.toggle('nav-open', open);
     if (scrim) scrim.hidden = !open;
     if (burger) {
@@ -23,12 +26,14 @@ window.ercionInit = () => {
     if (open) {
       const first = sidebar?.querySelector('a,button');
       first && first.focus({ preventScroll: true });
-    }
+    } else navReturnFocus?.focus({ preventScroll:true });
+    moreNav?.setAttribute('aria-expanded',String(open));
   };
 
   burger?.addEventListener('click', () => setNav(!body.classList.contains('nav-open')));
   scrim?.addEventListener('click', () => setNav(false));
   $('#navClose')?.addEventListener('click', () => setNav(false));
+  moreNav?.addEventListener('click', e => {e.preventDefault();setNav(!body.classList.contains('nav-open'));});
 
   // ссылка в меню → закрываем ящик
   sidebar?.addEventListener('click', e => {
@@ -69,6 +74,9 @@ window.ercionInit = () => {
   let index = null, loading = null, loadError = false;
 
   const norm = s => String(s).toLowerCase().replace(/ё/g, 'е').replace(/[^\wа-я0-9\s-]/gi, ' ');
+  const aliases = {лп:'легкая пехота',тп:'тяжелая пехота',кв:'кавалерия',лч:'лучники',ос:'осадные',ст:'степь',рв:'равнина',ск:'скалы',бл:'болота',лс:'лес'};
+  const tokensFor = q => norm(q).split(/\s+/).filter(t=>t.length>1).flatMap(t=>(aliases[t]||t).split(' '));
+  let searchFilter = ['country','rules','news'].includes(new URLSearchParams(location.search).get('type')) ? new URLSearchParams(location.search).get('type') : 'all';
 
   const prepare = data =>
     data.map(d => ({ ...d, _t: norm(d.t), _s: norm(d.s || ''), _x: norm(d.x || ''),
@@ -98,10 +106,13 @@ window.ercionInit = () => {
                     : t.length >= 5 ? t.slice(0, -1) : t;
 
   function search(q) {
-    const tokens = norm(q).split(/\s+/).filter(t => t.length > 1);
+    const tokens = tokensFor(q);
     if (!tokens.length) return [];
     const out = [];
     for (const d of index) {
+      if (searchFilter === 'country' && d.k !== 'country') continue;
+      if (searchFilter === 'news' && d.k !== 'news') continue;
+      if (searchFilter === 'rules' && !['rules','mechanics'].includes(d.category)) continue;
       let score = 0, all = true;
       for (const t of tokens) {
         const st = stemOf(t);
@@ -159,11 +170,16 @@ window.ercionInit = () => {
   }
 
   function render(box, q) {
-    const tokens = norm(q).split(/\s+/).filter(t => t.length > 1);
+    const tokens = tokensFor(q);
     const T = window.__L || {};
     if (!tokens.length) {
-      box.innerHTML = '<p class="finder__hint">' +
-        escHtml(T.hint || 'Начните печатать — ищем по всему сайту.') + '</p>';
+      const E=window.Ercyon;
+      const stored=E?.read('recentQueries',[]);
+      const recent=Array.isArray(stored)?stored.filter(q=>typeof q==='string').slice(0,6):[];
+      const favorites=E?.list('favorites').slice(0,5)||[];
+      box.innerHTML = '<p class="finder__hint">' + escHtml(T.hint || 'Начните печатать — ищем по всему сайту.') + '</p>'
+        + (recent.length ? '<div class="search-recent"><p>Недавно искали <button type="button" data-clear-queries>Очистить</button></p>'+recent.map(q=>'<button type="button" data-recent-query="'+escHtml(q)+'">'+escHtml(q)+'</button>').join('')+'</div>':'')
+        + (favorites.length ? '<p class="finder__hint">Избранные страницы</p>'+favorites.map(d=>'<a class="fres" href="'+escHtml(E.href(d.url))+'"><span class="fres__title">'+escHtml(d.title)+'</span></a>').join(''):'');
       return;
     }
     if (loadError) {
@@ -192,7 +208,7 @@ window.ercionInit = () => {
     finder.hidden = false;
     body.classList.add('nav-open-lock');
     document.documentElement.style.overflow = 'hidden';
-    loadIndex().then(() => input.value && render(results, input.value));
+    loadIndex().then(() => render(results, input.value));
     setTimeout(() => input.focus(), 30);
   };
   const closeFinder = () => {
@@ -206,8 +222,22 @@ window.ercionInit = () => {
   for (const [box, field] of [[results, input], [pResults, pInput]]) {
     box?.addEventListener('click', e => {
       if (e.target.closest('[data-search-retry]')) loadIndex().then(() => render(box, field.value));
+      const recent=e.target.closest('[data-recent-query]');
+      if(recent){field.value=recent.dataset.recentQuery;field.dispatchEvent(new Event('input'));}
+      if(e.target.closest('[data-clear-queries]')){window.Ercyon?.write('recentQueries',[]);render(box,field.value);}
+      if(e.target.closest('.fres') && field.value.trim()){
+        const E=window.Ercyon,stored=E?.read('recentQueries',[]),q=field.value.trim().slice(0,100);
+        E?.write('recentQueries',[q,...(Array.isArray(stored)?stored:[]).filter(x=>typeof x==='string'&&x!==q)].slice(0,8));
+      }
     });
   }
+  const syncFilters=()=>$$('[data-search-filter]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.searchFilter===searchFilter)));
+  syncFilters();
+  $$('[data-search-filter]').forEach(button=>button.addEventListener('click',()=>{
+    searchFilter=button.dataset.searchFilter;syncFilters();
+    if(pInput){const u=new URL(location.href);searchFilter==='all'?u.searchParams.delete('type'):u.searchParams.set('type',searchFilter);history.replaceState(null,'',u);}
+    loadIndex().then(()=>{if(results && !finder.hidden)render(results,input.value);if(pResults)render(pResults,pInput.value);});
+  }));
 
   $('#searchBtn')?.addEventListener('click', openFinder);
   $('#searchBtn2')?.addEventListener('click', () => { setNav(false); openFinder(); });
@@ -261,7 +291,7 @@ window.ercionInit = () => {
     });
     pInput.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(run, 90); });
     pInput.focus();
-    if (q0) run();
+    run();
   }
 
   /* ─────────────────── ОГЛАВЛЕНИЕ: подсветка ─────────────────── */

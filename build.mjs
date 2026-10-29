@@ -13,6 +13,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import url from 'node:url';
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { Marked } from './vendor/marked.esm.js';
 import yaml from './vendor/js-yaml.mjs';
 import { renderPage } from './templates/layout.mjs';
@@ -20,6 +21,7 @@ import * as views from './templates/views.mjs';
 import { iconsPage } from './templates/icons-page.mjs';
 import { COUNTRY_SECTIONS } from './lib/country-data.mjs';
 import { plainText, documentSearchText } from './lib/search-data.mjs';
+import { libraryPage } from './templates/companion.mjs';
 
 const ROOT = path.dirname(url.fileURLToPath(import.meta.url));
 const CONTENT = path.join(ROOT, 'content');
@@ -449,7 +451,13 @@ function build() {
   fs.rmSync(DIST, { recursive: true, force: true });
   fs.mkdirSync(DIST, { recursive: true });
 
-  const ctx = { S, menu, docs, countries, treaties, wars, news, buildTime: BUILD_TIME, L };
+  const maps = docs.filter(d => d.kind === 'page' && d.category?.id === 'maps').map(d => ({
+    url: d.url, title: d.title, image: (d.html.match(/<img[^>]+src="([^"]+)"/) || [])[1] || '',
+    points: (Array.isArray(d.front.map_points) ? d.front.map_points : []).filter(p =>
+      p && countries.some(c => c.slug === p.country) && Number.isFinite(p.x) && Number.isFinite(p.y) && p.x >= 0 && p.x <= 100 && p.y >= 0 && p.y <= 100)
+      .map(p => ({ x:p.x, y:p.y, url:countries.find(c=>c.slug===p.country).url, title:countries.find(c=>c.slug===p.country).title })),
+  }));
+  const ctx = { S, menu, docs, countries, treaties, wars, news, maps, buildTime: BUILD_TIME, L };
   const write = (urlPath, html) => {
     const out = urlPath === '/'
       ? path.join(DIST, 'index.html')
@@ -489,6 +497,13 @@ function build() {
     updated: BUILD_TIME, toc: [], body: views.searchPage(ctx),
   }));
 
+  write('/library/', renderPage(ctx, {kind:'library',title:'Мой справочник',url:'/library/',updated:BUILD_TIME,toc:[],body:libraryPage()}));
+  write('/browse/', renderPage(ctx, {kind:'browse',title:'Все разделы',url:'/browse/',updated:BUILD_TIME,toc:[],body:
+    '<header class="phead"><h1>Все разделы</h1></header><p><a class="btn btn--gold" href="/library/">Мой справочник · избранное и офлайн</a></p>'
+    + menu.map(c=>views.categoryIndex(ctx,c)).join('')}));
+  write('/offline/', renderPage(ctx, {kind:'offline',title:'Нет соединения',url:'/offline/',updated:BUILD_TIME,toc:[],body:
+    '<header class="phead"><h1>Вы без интернета</h1><p>Эта страница ещё не сохранена. Откройте одну из загруженных копий или подключитесь к сети.</p></header><p><a class="btn btn--gold" href="/library/">Сохранённые страницы</a></p>'}));
+
   fs.writeFileSync(path.join(DIST, '404.html'),
     renderPage(ctx, {
       kind: '404', title: L('notfound.title', 'Страница потерялась'), url: '/404.html',
@@ -505,6 +520,7 @@ function build() {
         h: (d.toc || []).map(x => x.text).join(' \u00b7 '),   // заголовки внутри страницы
         x: documentSearchText(d),
         k: d.kind,
+        category: d.category?.id || '', updated: new Date(d.updated).toISOString(),
       })),
     /* Раздел, чей адрес занят настоящей страницей, в поиске уже есть — второй
        раз его не показываем, иначе в выдаче будут два одинаковых ответа. */
@@ -515,7 +531,7 @@ function build() {
 
   /* — карта сайта, robots, RSS — */
   const base = (S.site_url || '').replace(/\/$/, '');
-  const urls = [...new Set(['/', '/search/', ...menu.map(c => c.url), ...docs.map(d => d.url)])];
+  const urls = [...new Set(['/', '/search/', '/library/', '/browse/', ...menu.map(c => c.url), ...docs.map(d => d.url)])];
   fs.writeFileSync(path.join(DIST, 'sitemap.xml'),
     `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`
     + urls.map(u => `  <url><loc>${base}${u}</loc></url>`).join('\n') + `\n</urlset>\n`, 'utf8');
@@ -566,6 +582,15 @@ function build() {
 
   // Если сайт в подпапке — переписываем все корневые ссылки на /Ercyon-site/...
   applyBasePath(DIST, BASE);
+  const swPath = path.join(DIST, 'sw.js');
+  const versionHash = createHash('sha256').update(fs.readFileSync(path.join(DIST, 'index.html')))
+    .update(fs.readFileSync(path.join(DIST, 'search-index.json')))
+    .update(fs.readFileSync(swPath));
+  for (const folder of ['css','js']) for (const name of fs.readdirSync(path.join(DIST,folder)).sort()) {
+    versionHash.update(fs.readFileSync(path.join(DIST,folder,name)));
+  }
+  const version = versionHash.digest('hex').slice(0,12);
+  fs.writeFileSync(swPath, fs.readFileSync(swPath,'utf8').replaceAll('__CACHE_VERSION__', version));
 
   if (hiddenCats.length) {
     log(`\n  ⚠ Разделы удалены из настроек — из меню и с главной они убраны:`);

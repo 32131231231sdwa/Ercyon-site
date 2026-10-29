@@ -321,6 +321,22 @@ collections:
       - { name: summary, label: Короткое описание, widget: text, required: false,
           hint: 'Одно предложение — видно в карточках раздела и в поиске' }
       - { name: body, label: Текст страницы, widget: markdown }
+      - name: map_points
+        label: Метки стран на карте
+        widget: list
+        required: false
+        collapsed: true
+        hint: 'Только для страниц раздела maps. Метки стоят на первой картинке страницы. Координаты в процентах: X слева направо, Y сверху вниз. Нажатие на метку открывает досье.'
+        fields:
+          - name: country
+            label: Страна
+            widget: relation
+            collection: countries
+            search_fields: [title, slug]
+            display_fields: [title]
+            value_field: slug
+          - { name: x, label: X (% от левого края), widget: number, value_type: float, min: 0, max: 100 }
+          - { name: y, label: Y (% от верхнего края), widget: number, value_type: float, min: 0, max: 100 }
 
   # ─────────────────────────── СТРАНЫ ───────────────────────────
   - name: countries

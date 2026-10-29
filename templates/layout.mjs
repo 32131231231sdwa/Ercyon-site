@@ -9,6 +9,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import url from 'node:url';
 import { esc, humanDate } from '../build.mjs';
+import { mobileDock, readerTools, searchFilters } from './companion.mjs';
 
 const HERE = path.dirname(url.fileURLToPath(import.meta.url));
 const SPRITE_RAW = fs.readFileSync(path.join(HERE, '..', 'static', 'img', 'decor', 'sprite.svg'), 'utf8')
@@ -167,6 +168,7 @@ export function renderPage(ctx, doc) {
 <link rel="preload" as="font" type="font/woff2" href="/fonts/ptserif-400-n-cyrillic.woff2" crossorigin>
 <link rel="stylesheet" href="/css/fonts.css">
 <link rel="stylesheet" href="/css/site.css">
+<link rel="stylesheet" href="/css/mobile.css">
 </head>
 <body class="${isHome ? 'is-home' : ''}" data-cat="${doc.category?.id || ''}">
 ${SPRITE_SLOT}
@@ -201,6 +203,7 @@ ${SPRITE_SLOT}
       <button class="sidebar__search" id="searchBtn2">
         ${icon('i-search')}<span>${esc(L('nav.search_button', 'Поиск по сайту'))}</span><kbd>/</kbd>
       </button>
+      <a class="sidebar__search" href="/library/" style="text-decoration:none">${icon('i-book')}<span>Мой справочник</span></a>
 
       <a class="season ${stateCls}" href="${exists('/season/') ? '/season/' : '/#season-name'}">
         <span class="season__dot" aria-hidden="true"></span>
@@ -226,6 +229,7 @@ ${SPRITE_SLOT}
     <span class="vine vine--right" aria-hidden="true">${VINE}</span>
 
     ${isHome ? '' : crumbs(doc, L, exists)}
+    ${readerTools(doc)}
     ${doc.body}
 
     ${isHome ? '' : `<div class="updated">${icon('i-clock', 'ico ico--sm')}
@@ -248,6 +252,8 @@ ${SPRITE_SLOT}
   ${tocHtml(doc.toc, L)}
 </div>
 
+${mobileDock(doc)}
+<div class="toast" id="siteToast" role="status" hidden></div>
 <div class="finder" id="finder" hidden role="dialog" aria-modal="true" aria-label="${
   esc(L('nav.search_button', 'Поиск по сайту'))}">
   <div class="finder__panel">
@@ -259,6 +265,7 @@ ${SPRITE_SLOT}
              autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
       <button class="finder__close" id="finderClose" aria-label="Закрыть поиск">${icon('i-close', 'ico')}</button>
     </div>
+    ${searchFilters()}
     <div class="finder__results" id="finderResults" aria-live="polite">
       <p class="finder__hint">${esc(jsLabels.hint)}</p>
     </div>
@@ -266,7 +273,12 @@ ${SPRITE_SLOT}
 </div>
 
 <script>window.__BASE__ = ${JSON.stringify(BASE)}; window.__L = ${JSON.stringify(jsLabels)};</script>
+<script>window.__PAGE__ = ${JSON.stringify({url:doc.url,title:doc.title,kind:doc.kind,updated:doc.updated}).replace(/</g,'\\u003c')}; window.__MAPS__ = ${JSON.stringify(ctx.maps || []).replace(/</g,'\\u003c')};</script>
+<script src="/js/storage.js" defer></script>
 <script src="/js/app.js" defer></script>
+<script src="/js/companion.js" defer></script>
+${doc.category?.id === 'maps' ? '<script src="/js/maps.js" defer></script>' : ''}
+<script src="/js/offline.js" defer></script>
 </body>
 </html>`;
   return html.replace(SPRITE_SLOT, () => spriteFor(html));

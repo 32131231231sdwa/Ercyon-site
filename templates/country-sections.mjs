@@ -17,7 +17,7 @@ const note = value => hasValue(value) ? `<p class="dossier-note">${esc(value)}</
 const empty = text => `<p class="dossier-empty">${esc(text)}</p>`;
 const section = (index, content) => {
   const { id, title, icon: symbol } = COUNTRY_SECTIONS[index];
-  return `<section class="dossier-section" aria-labelledby="${id}">
+  return `<section class="dossier-section" data-country-panel="${id}" aria-labelledby="${id}">
     <h2 class="dossier-heading" id="${id}">${icon(`i-${symbol}`)}${title}<a class="anchor" href="#${id}" aria-label="Ссылка на раздел «${title}»">§</a></h2>
     ${content}</section>`;
 };
@@ -45,10 +45,10 @@ export function countrySections(front) {
     <ol start="0">${COMMANDER_LEVELS.map((title, level) => `<li>${title} — навык ${level * 10}</li>`).join('')}</ol>
     <a href="/mechanics/war/">Правила ведения войн</a></details>`;
 
-  const unitCards = units.map(u => `<article class="dossier-card">
-    <div class="dossier-card__head"><h3>${esc(u.name)}</h3><span class="tag">${esc(UNIT_TYPES[u.type] || u.type || 'Тип не указан')}</span></div>
+  const unitCards = units.map(u => `<details class="dossier-card unit-card">
+    <summary><span class="unit-name">${esc(u.name)}</span><span class="tag">${esc(UNIT_TYPES[u.type] || u.type || 'Тип не указан')}</span><span class="unit-count">${amount(u.count, 'чел.')}</span></summary>
     ${facts([['Бойцов / экипаж', amount(u.count, 'чел.')], ['Командир', u.commander], ['Расположение', u.location],
-      ['Подготовка', u.training], ['Вооружение', u.equipment]])}${note(u.notes)}</article>`).join('');
+      ['Подготовка', u.training], ['Вооружение', u.equipment]])}${note(u.notes)}</details>`).join('');
   const armyFacts = facts([
     ['Численность по указанным отрядам', total === null ? 'Не указана' : `${number(total)} чел.${partial ? ' (данные неполные)' : ''}`],
     ['Резерв', hasValue(army.reserve) ? amount(army.reserve, 'чел.') : null],

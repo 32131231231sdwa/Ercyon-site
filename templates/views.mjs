@@ -6,6 +6,7 @@ import { esc, humanDate } from '../build.mjs';
 import { icon, stateClass } from './layout.mjs';
 import { countryNavigation, countrySections } from './country-sections.mjs';
 import { countryData, countrySearchText } from '../lib/country-data.mjs';
+import { dashboard, mapViewer, searchFilters } from './companion.mjs';
 
 const head = (title, sub) => `<header class="phead">
   <h1>${esc(title)}</h1>
@@ -97,76 +98,12 @@ export function seasonPanel(ctx) {
 /* ═══════════════════════════ ГЛАВНАЯ ═══════════════════════════ */
 
 export function home(ctx, doc) {
-  const { S, menu, news, L } = ctx;
-  const f = doc.front || {};
-  const latest = news.slice(0, 4);
-  /* Ссылку на «Как вступить» ставим только если такая страница есть: её могут
-     удалить или перенести из панели, а мёртвая кнопка на главной — худшее,
-     что читатель увидит первым. */
-  const joinUrl = ctx.docs.find(d => d.url === '/countries/join/')?.url;
-
-  const cards = menu.map(cat => `
-    <a class="card" href="${cat.url}">
-      <span class="card__ico">${icon(`i-${cat.icon || 'leaf'}`, 'ico ico--xl')}</span>
-      <span class="card__body">
-        <span class="card__title">${esc(cat.title)}</span>
-        <span class="card__text">${esc(cat.intro || '')}</span>
-      </span>
-      <span class="card__more">${icon('i-arrow', 'ico ico--sm')}</span>
-    </a>`).join('');
-
-  const newsList = latest.length ? latest.map(n => `
-    <a class="feed__item" href="${n.url}">
-      <time class="feed__date" datetime="${n.date.toISOString()}">${humanDate(n.date)}</time>
-      <span class="feed__title">${esc(n.title)}</span>
-      <span class="feed__sum">${esc(n.summary || '')}</span>
-    </a>`).join('')
-    : `<p class="muted">${esc(L('home.news_empty', 'Новостей пока нет.'))}</p>`;
-
-  return `
-<section class="hero">
-  <picture class="hero__bg">
-    <source media="(max-width:640px)" srcset="/img/hero-800.webp">
-    <source media="(max-width:1280px)" srcset="/img/hero-1280.webp">
-    <img src="/img/hero-1920.webp" alt="" fetchpriority="high" decoding="async">
-  </picture>
-  <div class="hero__inner">
-    <img class="hero__logo" src="/img/logo-256.webp" width="150" height="150"
-         alt="Герб проекта «${esc(S.site_title)}»" fetchpriority="high">
-    <h1 class="hero__title">${esc(S.site_title)}</h1>
-    <p class="hero__motto">${esc(S.motto || '')}</p>
-    <svg class="hero__rule" aria-hidden="true"><use href="#d-divider"/></svg>
-    <p class="hero__lede">${esc(f.intro_text || S.description || '').replace(/\r?\n/g, '<br>')}</p>
-    <div class="hero__actions">
-      <a class="btn btn--gold" href="${esc(S.telegram_url || '#')}" target="_blank" rel="noopener noreferrer">
-        ${icon('i-telegram', 'ico')}<span>${esc(S.telegram_label || 'В группу')}</span></a>
-      ${joinUrl ? `<a class="btn btn--ghost" href="${joinUrl}">${
-        esc(L('home.join_button', 'Как вступить'))}</a>` : ''}
-    </div>
-  </div>
-</section>
-
-${seasonPanel(ctx)}
-
-${f.intro_title ? `<h2 class="h-sec">${esc(f.intro_title)}</h2>` : ''}
-
-<section class="cards" aria-label="Разделы вики">${cards}</section>
-
-<section class="feed" aria-label="Последние новости">
-  <div class="feed__head">
-    <h2 class="h-sec">${esc(L('home.news_title', 'Последние вести'))}</h2>
-    <a class="feed__all" href="/news/">${esc(L('home.news_all', 'Все новости'))} ${icon('i-arrow', 'ico ico--sm')}</a>
-  </div>
-  <div class="feed__list">${newsList}</div>
-</section>
-
-${doc.html ? `<section class="homeprose">${prose(doc.html)}</section>` : ''}
-`;
+  return dashboard(ctx, doc);
 }
 
-/* ═══════════════════════ ОБЫЧНАЯ СТРАНИЦА ═══════════════════════ */
-
 export function page(ctx, d) {
+  if (d.category?.id === 'maps') return head(d.title, d.summary)
+    + mapViewer(ctx.maps || [], d.url) + prose(d.html);
   return head(d.title, d.summary)
     + prose(d.html);
 }
@@ -294,7 +231,8 @@ export function country(ctx, d) {
 <header class="phead phead--country" style="--flag:${esc(f.color || '#3E6B4F')}">
   <span class="phead__banner" aria-hidden="true">${icon('i-banner', 'ico ico--xl')}</span>
   <h1>${esc(d.title)}</h1>
-  ${d.summary ? `<p class="phead__sub">${esc(d.summary)}</p>` : ''}
+  <dl class="country-at-glance">${[[L('countries.f_ruler','Правитель'),f.ruler],[L('countries.f_capital','Столица'),f.capital]].filter(([,v])=>v).map(([k,v])=>`<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>
+  ${d.summary ? `<details class="country-intro"><summary>О державе</summary><p class="phead__sub">${esc(d.summary)}</p></details>` : ''}
   <div class="phead__meta">
     <span class="pill pill--${st.cls}">${esc(st.label)}</span>
     ${d.readingTime ? `<span class="phead__time">${icon('i-clock', 'ico ico--sm')} ~${d.readingTime} мин чтения</span>` : ''}
@@ -302,13 +240,13 @@ export function country(ctx, d) {
 </header>
 
 ${countryNavigation()}
-<section class="dossier-overview" aria-labelledby="country-overview">
+<section class="dossier-overview" data-country-panel="country-overview" aria-labelledby="country-overview">
 <h2 class="h-sec" id="country-overview">Обзор державы</h2>
 <section class="passport" aria-label="Паспорт державы">
   <dl>${rows.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>
 </section>
 
-${prose(d.html)}
+<details class="country-history" open><summary>История и описание страны</summary>${prose(d.html)}</details>
 </section>
 ${countrySections(f)}
 
@@ -619,6 +557,7 @@ export function searchPage(ctx) {
            aria-label="${esc(L('search.page_title', 'Поиск по сайту'))}"
            autocomplete="off" spellcheck="false" enterkeyhint="search">
   </div>
+  ${searchFilters()}
   <div id="pageSearchResults" class="finder__results finder__results--page" aria-live="polite">
     <p class="finder__hint">${esc(L('nav.search_hint', 'Начните печатать.'))}</p>
   </div>
