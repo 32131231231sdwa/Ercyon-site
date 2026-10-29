@@ -705,6 +705,40 @@ body.nav-open .scrim{ opacity:1; }
 .parties{ margin:0 0 1.75rem; }
 .related{ margin-top:2.5rem; padding-top:1.5rem; border-top:1px solid var(--parch-e); }
 
+/* Разделы досье доступны по обычным ссылкам, в том числе без JavaScript. */
+.dossier-nav{ display:flex; flex-wrap:wrap; gap:.45rem; margin:0 0 1.8rem; }
+.dossier-nav a{
+  display:flex; align-items:center; gap:.45rem; min-height:var(--tap);
+  padding:.5rem .8rem; border:1px solid var(--parch-e); border-radius:var(--radius);
+  background:rgba(255,255,255,.5); color:var(--deep); text-decoration:none; font-size:.95rem;
+}
+.dossier-nav a:hover,.dossier-nav a:focus-visible{ border-color:var(--gold); background:rgba(176,141,74,.14); }
+.dossier-section{ margin:2.5rem 0; padding-top:1.4rem; border-top:1px solid var(--parch-e); }
+.dossier-heading{ display:flex; align-items:center; gap:.65rem; margin:0 0 1.2rem; font-family:var(--display); font-size:1.9rem; line-height:1.2; color:var(--deep); }
+.dossier-heading .ico{ color:var(--moss); }
+.dossier-heading .anchor{ font-size:1rem; }
+.dossier-grid{ display:grid; gap:.85rem; }
+.dossier-card{ min-width:0; padding:1.1rem; border:1px solid var(--parch-e); border-top:3px solid var(--gold); border-radius:var(--radius); background:rgba(255,255,255,.48); overflow-wrap:anywhere; }
+.dossier-card h3,.dossier-legacy h3{ margin:0; font-family:var(--display); font-size:1.4rem; line-height:1.25; color:var(--deep); }
+.dossier-card__head{ display:flex; align-items:baseline; flex-wrap:wrap; gap:.5rem; justify-content:space-between; }
+.dossier-card__subtitle{ margin:.3rem 0; color:var(--ink-2); font-size:.92rem; }
+.commander-rank{ display:flex; flex-wrap:wrap; justify-content:space-between; gap:.4rem; padding:.65rem 0; margin-top:.5rem; border-bottom:1px solid var(--parch-e); font-size:.9rem; color:var(--deep); }
+.commander-rank strong{ color:var(--moss); }
+.dossier-facts{ margin:.8rem 0; display:grid; gap:.6rem; }
+.dossier-facts div{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.3fr); gap:.75rem; }
+.dossier-facts dt{ color:var(--ink-2); font-size:.86rem; }
+.dossier-facts dd{ margin:0; font-size:.94rem; overflow-wrap:anywhere; }
+.dossier-note{ margin:.8rem 0 0; white-space:pre-line; color:var(--ink-2); font-size:.94rem; }
+.dossier-empty{ padding:1rem 1.15rem; border:1px dashed var(--parch-e); border-radius:var(--radius); color:var(--ink-2); font-size:.96rem; background:rgba(255,255,255,.2); }
+.dossier-help{ margin-top:1rem; padding:.75rem 1rem; border:1px solid var(--parch-e); border-radius:var(--radius); font-size:.92rem; color:var(--ink-2); }
+.dossier-help summary{ cursor:pointer; color:var(--deep); min-height:1.6rem; }
+.dossier-help ol{ padding-left:1.6rem; }
+.dossier-help a{ color:var(--moss); }
+.dossier-legacy{ margin-bottom:1.2rem; }
+.dossier-legacy .tags{ margin-top:.6rem; }
+@media(min-width:58rem){ .dossier-grid{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media print{ .dossier-nav{ display:none; } .dossier-card{ break-inside:avoid; } }
+
 /* договоры */
 .trows{ display:grid; gap:.6rem; }
 .trow{

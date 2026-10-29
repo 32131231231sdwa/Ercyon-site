@@ -18,6 +18,8 @@ import yaml from './vendor/js-yaml.mjs';
 import { renderPage } from './templates/layout.mjs';
 import * as views from './templates/views.mjs';
 import { iconsPage } from './templates/icons-page.mjs';
+import { COUNTRY_SECTIONS } from './lib/country-data.mjs';
+import { plainText, documentSearchText } from './lib/search-data.mjs';
 
 const ROOT = path.dirname(url.fileURLToPath(import.meta.url));
 const CONTENT = path.join(ROOT, 'content');
@@ -154,9 +156,9 @@ function renderMarkdown(md) {
 }
 
 /** Доводка готового HTML: якоря, ленивые картинки, прокручиваемые таблицы, ❦. */
-function polish(html) {
+function polish(html, reservedIds = []) {
   const toc = [];
-  const used = new Set();
+  const used = new Set(reservedIds);
 
   html = html.replace(/<h([23])>([\s\S]*?)<\/h\1>/g, (_, lvl, inner) => {
     const text = inner.replace(/<[^>]+>/g, '').trim();
@@ -202,13 +204,6 @@ function polish(html) {
   html = html.replace(/<blockquote>/g, '<blockquote class="bq">');
 
   return { html, toc };
-}
-
-function plainText(html) {
-  return html.replace(/<(script|style)[\s\S]*?<\/\1>/g, ' ')
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/&[a-z]+;|&#\d+;/gi, ' ')
-    .replace(/\s+/g, ' ').trim();
 }
 
 /* ═════════════════════════ чтение контента ═════════════════════════ */
@@ -358,11 +353,12 @@ function build() {
   /* — страны — */
   const countries = countryFiles.map(({ abs, front, body }) => {
     const slug = front.slug || slugify(front.title);
-    const { html, toc } = polish(renderMarkdown(body));
+    const { html, toc } = polish(renderMarkdown(body), COUNTRY_SECTIONS.map(s => s.id));
+    const sections = COUNTRY_SECTIONS.map(s => ({ level: 2, text: s.title, id: s.id }));
     return {
       kind: 'country', title: front.title, slug, url: `/countries/${slug}/`,
       category: catById.countries, order: Number(front.order ?? 100),
-      summary: front.summary || '', html, toc, updated: fileUpdated(abs, front), front,
+      summary: front.summary || '', html, toc: [sections[0], ...toc, ...sections.slice(1)], updated: fileUpdated(abs, front), front,
       readingTime: readingTime(plainText(html)),
     };
   }).sort((a, b) => a.order - b.order || a.title.localeCompare(b.title, 'ru'));
@@ -507,7 +503,7 @@ function build() {
       .map(d => ({
         u: d.url, t: d.title, c: d.category?.title || '', s: d.summary || '',
         h: (d.toc || []).map(x => x.text).join(' \u00b7 '),   // заголовки внутри страницы
-        x: plainText(d.html).slice(0, 2200),
+        x: documentSearchText(d),
         k: d.kind,
       })),
     /* Раздел, чей адрес занят настоящей страницей, в поиске уже есть — второй

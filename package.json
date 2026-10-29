@@ -5,6 +5,7 @@
   "description": "Сайт-вики ролевого проекта Ercyon. Без зависимостей: нужен только Node.js.",
   "type": "module",
   "scripts": {
+    "test": "node build.mjs && node --test",
     "build": "node build.mjs",
     "start": "node build.mjs --serve",
     "preview": "node build.mjs && node tools/make_preview.mjs"

@@ -376,6 +376,111 @@ collections:
       - { name: summary, label: Короткое описание, widget: text, required: false }
       - { name: body, label: Досье, widget: markdown,
           hint: 'Разделы делайте заголовками: ## Правление, ## Земли, ## Хроника' }
+      - name: commanders
+        label: Воеводы
+        label_singular: воеводу
+        widget: list
+        required: false
+        collapsed: true
+        summary: '{{fields.name}} · уровень {{fields.level}}'
+        hint: 'Список генералов. Навык рассчитывается автоматически по правилам: уровень × 10. Пустой список означает, что сведения ещё не опубликованы.'
+        fields:
+          - { name: name, label: Имя, widget: string }
+          - { name: title, label: Титул / звание, widget: string, required: false }
+          - name: level
+            label: Уровень
+            widget: select
+            required: false
+            options:
+              - { label: '0 — Без генерала / Толпа (навык 0)', value: 0 }
+              - { label: '1 — Капитан (навык 10)', value: 1 }
+              - { label: '2 — Воевода (навык 20)', value: 2 }
+              - { label: '3 — Полководец (навык 30)', value: 3 }
+              - { label: '4 — Маршал (навык 40)', value: 4 }
+              - { label: '5 — Легендарный стратег (навык 50)', value: 5 }
+          - name: status
+            label: Состояние
+            widget: select
+            required: false
+            options:
+              - { label: В строю, value: active }
+              - { label: Ранен, value: wounded }
+              - { label: В плену, value: captured }
+              - { label: В отставке, value: retired }
+              - { label: Погиб, value: dead }
+          - { name: specialty, label: Специализация, widget: string, required: false }
+          - { name: assignment, label: Командует, widget: string, required: false }
+          - { name: notes, label: Особенности / биография, widget: text, required: false }
+      - name: army
+        label: Армия
+        widget: object
+        required: false
+        collapsed: true
+        hint: 'Численность считается по отрядам. Считайте бойцов и экипажи, а не корабли или орудия: технику указывайте в снаряжении. Неизвестные числа оставляйте пустыми.'
+        fields:
+          - { name: reserve, label: Резерв (человек), widget: number, value_type: int, min: 0, required: false }
+          - { name: morale, label: Боевой дух, widget: string, required: false }
+          - { name: supply, label: Снабжение, widget: string, required: false }
+          - { name: notes, label: Общее описание армии, widget: text, required: false }
+          - name: units
+            label: Отряды
+            label_singular: отряд
+            widget: list
+            required: false
+            collapsed: true
+            summary: '{{fields.name}}'
+            fields:
+              - { name: name, label: Название отряда, widget: string }
+              - name: type
+                label: Род войск
+                widget: select
+                required: false
+                options:
+                  - { label: Лёгкая пехота (ЛП), value: light_infantry }
+                  - { label: Тяжёлая пехота (ТП), value: heavy_infantry }
+                  - { label: Кавалерия (КВ), value: cavalry }
+                  - { label: Лучники (ЛЧ), value: archers }
+                  - { label: Осадные / инженерные (ОС), value: siege }
+                  - { label: Флот, value: navy }
+                  - { label: Другие войска, value: other }
+              - { name: count, label: Бойцов / экипаж (человек), widget: number, value_type: int, min: 0, required: false }
+              - { name: commander, label: Командир, widget: string, required: false }
+              - { name: location, label: Расположение, widget: string, required: false }
+              - { name: training, label: Подготовка / опыт, widget: string, required: false }
+              - { name: equipment, label: Вооружение, widget: string, required: false }
+              - { name: notes, label: Примечания, widget: text, required: false }
+      - name: equipment
+        label: Снаряжение
+        label_singular: предмет
+        widget: list
+        required: false
+        collapsed: true
+        summary: '{{fields.name}}'
+        fields:
+          - { name: name, label: Наименование, widget: string }
+          - { name: category, label: Категория, widget: string, required: false, hint: 'Оружие, доспехи, осадные орудия, корабли, транспорт…' }
+          - { name: quantity, label: Количество, widget: number, value_type: int, min: 0, required: false }
+          - { name: unit, label: Единица измерения, widget: string, required: false, hint: 'шт., комплектов, кораблей…' }
+          - { name: material, label: Материал, widget: string, required: false }
+          - { name: quality, label: Качество, widget: string, required: false }
+          - { name: assigned_to, label: Выдано / хранится, widget: string, required: false }
+          - { name: notes, label: Особенности, widget: text, required: false }
+      - name: resource_stock
+        label: Ресурсы — учёт запасов
+        label_singular: ресурс
+        widget: list
+        required: false
+        collapsed: true
+        summary: '{{fields.name}}'
+        hint: 'Дополняет прежнее поле «Ресурсы». Указывайте единицы и период дохода / расхода; пустой запас не равен нулю.'
+        fields:
+          - { name: name, label: Название ресурса, widget: string }
+          - { name: amount, label: Запас, widget: number, value_type: float, min: 0, required: false }
+          - { name: unit, label: Единица измерения, widget: string, required: false }
+          - { name: production, label: Добыча / доход за ход, widget: string, required: false }
+          - { name: consumption, label: Расход за ход, widget: string, required: false }
+          - { name: location, label: Расположение, widget: string, required: false }
+          - { name: notes, label: Примечания, widget: text, required: false }
 
   # ─────────────────────────── НОВОСТИ ───────────────────────────
   - name: news

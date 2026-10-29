@@ -4,6 +4,8 @@
  */
 import { esc, humanDate } from '../build.mjs';
 import { icon, stateClass } from './layout.mjs';
+import { countryNavigation, countrySections } from './country-sections.mjs';
+import { countryData, countrySearchText } from '../lib/country-data.mjs';
 
 const head = (title, sub) => `<header class="phead">
   <h1>${esc(title)}</h1>
@@ -221,7 +223,7 @@ export function countriesIndex(ctx) {
 <div class="cfilter" id="cfilter">
   <div class="cfilter__search">
     ${icon('i-search', 'ico')}
-    <input type="search" id="cSearchInput" placeholder="Поиск по державе, правителю, столице, ресурсам…" autocomplete="off" spellcheck="false" aria-label="Поиск по каталогу держав">
+    <input type="search" id="cSearchInput" placeholder="Держава, правитель, воевода, ресурсы…" autocomplete="off" spellcheck="false" aria-label="Поиск по каталогу держав">
   </div>
   <div class="cfilter__count" id="cFilterCount" aria-live="polite"></div>
 </div>`;
@@ -229,7 +231,7 @@ export function countriesIndex(ctx) {
   const cards = countries.map(c => {
     const f = c.front || {};
     const st = countryStatus(L, f.status);
-    const res = Array.isArray(f.resources) ? f.resources : (f.resources ? [f.resources] : []);
+    const { resources: res } = countryData(f);
     const resTokens = res.map(r => String(r).replace(/\s*\(\d+\)\s*$/, '').trim().toLowerCase()).join(';');
     const popNum = parseInt(String(f.population || '0').replace(/[^\d]/g, ''), 10) || 0;
 
@@ -240,6 +242,7 @@ export function countriesIndex(ctx) {
       data-capital="${esc((f.capital || '').toLowerCase())}"
       data-status="${esc(f.status || 'active')}"
       data-resources="${esc(resTokens)}"
+      data-search="${esc(countrySearchText(f))}"
       data-pop="${popNum}"
       data-order="${c.order ?? 100}">
       <span class="ccard__flag" aria-hidden="true"></span>
@@ -274,7 +277,6 @@ export function country(ctx, d) {
     [L('countries.f_player',     'Игрок'),     f.player],
   ].filter(([, v]) => v);
 
-  const res = Array.isArray(f.resources) ? f.resources : (f.resources ? [f.resources] : []);
   const linked = ctx.treaties.filter(t =>
     Array.isArray(t.front.parties) && t.front.parties.some(p => String(p).trim() === d.title.trim()));
 
@@ -299,14 +301,16 @@ export function country(ctx, d) {
   </div>
 </header>
 
-<section class="passport">
+${countryNavigation()}
+<section class="dossier-overview" aria-labelledby="country-overview">
+<h2 class="h-sec" id="country-overview">Обзор державы</h2>
+<section class="passport" aria-label="Паспорт державы">
   <dl>${rows.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>
-  ${res.length ? `<div class="passport__res">
-    <span class="passport__resk">${esc(L('countries.f_resources', 'Ресурсы'))}</span>
-    <span class="tags">${res.map(r => `<span class="tag">${esc(r)}</span>`).join('')}</span></div>` : ''}
 </section>
 
 ${prose(d.html)}
+</section>
+${countrySections(f)}
 
 ${linked.length ? `<section class="related">
   <h2 class="h-sec">${esc(L('countries.treaties_title', 'Договоры державы'))}</h2>
@@ -407,13 +411,13 @@ function renderWarSide(side, isCmd, isForces, isCasualties) {
     return `<ul class="warbox__list">${cmds.map(c => {
       const name = typeof c === 'string' ? c : (c.name || '');
       const title = typeof c === 'object' ? c.title : '';
-      const isDead = (typeof c === 'object' && (c.status === 'killed' || c.status === 'dead')) || name.includes('†');
       const isWounded = (typeof c === 'object' && c.status === 'wounded') || name.includes('#†');
+      const isDead = (typeof c === 'object' && (c.status === 'killed' || c.status === 'dead')) || (!isWounded && name.includes('†'));
       const isCaptured = typeof c === 'object' && c.status === 'captured';
       const cleanName = name.replace(/[†#]/g, '').trim();
       let badge = '';
       if (isDead) badge = '<span class="warbox__dagger" title="Погиб в бою">†</span>';
-      else if (isWounded) badge = '<span class="warbox__dagger" title="Смертельно ранен / казнён">#†</span>';
+      else if (isWounded) badge = '<span class="warbox__dagger" title="Ранен">#†</span>';
       else if (isCaptured) badge = '<span class="warbox__dagger" title="Пленён">(плен)</span>';
 
       return `<li>
@@ -612,9 +616,10 @@ export function searchPage(ctx) {
     ${icon('i-search', 'ico')}
     <input type="search" id="pageSearchInput" placeholder="${
       esc(L('search.page_placeholder', 'Введите слово…'))}"
+           aria-label="${esc(L('search.page_title', 'Поиск по сайту'))}"
            autocomplete="off" spellcheck="false" enterkeyhint="search">
   </div>
-  <div id="pageSearchResults" class="finder__results finder__results--page">
+  <div id="pageSearchResults" class="finder__results finder__results--page" aria-live="polite">
     <p class="finder__hint">${esc(L('nav.search_hint', 'Начните печатать.'))}</p>
   </div>
 </div>`;

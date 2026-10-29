@@ -202,7 +202,7 @@ ${SPRITE_SLOT}
         ${icon('i-search')}<span>${esc(L('nav.search_button', 'Поиск по сайту'))}</span><kbd>/</kbd>
       </button>
 
-      <a class="season ${stateCls}" href="/season/">
+      <a class="season ${stateCls}" href="${exists('/season/') ? '/season/' : '/#season-name'}">
         <span class="season__dot" aria-hidden="true"></span>
         <span class="season__body">
           <span class="season__label">${esc(L('nav.season_word', 'Сезон'))} ${
@@ -255,10 +255,11 @@ ${SPRITE_SLOT}
       ${icon('i-search', 'ico')}
       <input type="search" id="finderInput" placeholder="${
         esc(L('nav.search_placeholder', 'Искать по сайту…'))}"
+             aria-label="${esc(L('nav.search_button', 'Поиск по сайту'))}"
              autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
       <button class="finder__close" id="finderClose" aria-label="Закрыть поиск">${icon('i-close', 'ico')}</button>
     </div>
-    <div class="finder__results" id="finderResults">
+    <div class="finder__results" id="finderResults" aria-live="polite">
       <p class="finder__hint">${esc(jsLabels.hint)}</p>
     </div>
   </div>

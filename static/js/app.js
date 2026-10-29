@@ -66,7 +66,7 @@ window.ercionInit = () => {
   const pInput  = $('#pageSearchInput');
   const pResults= $('#pageSearchResults');
 
-  let index = null, loading = null;
+  let index = null, loading = null, loadError = false;
 
   const norm = s => String(s).toLowerCase().replace(/ё/g, 'е').replace(/[^\wа-я0-9\s-]/gi, ' ');
 
@@ -77,10 +77,17 @@ window.ercionInit = () => {
   const loadIndex = () => {
     if (index) return Promise.resolve(index);
     if (window.__SEARCH_INDEX__) { index = prepare(window.__SEARCH_INDEX__); return Promise.resolve(index); }
-    if (!loading) loading = fetch((window.__BASE__ || '') + '/search-index.json')
-      .then(r => r.json())
-      .then(data => (index = prepare(data)))
-      .catch(() => (index = []));
+    if (!loading) {
+      loadError = false;
+      loading = fetch((window.__BASE__ || '') + '/search-index.json')
+        .then(r => { if (!r.ok) throw new Error('Search index unavailable'); return r.json(); })
+        .then(data => {
+          if (!Array.isArray(data)) throw new Error('Invalid search index');
+          return (index = prepare(data));
+        })
+        .catch(() => { loadError = true; return null; })
+        .finally(() => { loading = null; });
+    }
     return loading;
   };
 
@@ -122,13 +129,18 @@ window.ercionInit = () => {
   const escHtml = s => String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
 
   function mark(text, tokens) {
-    let html = escHtml(text);
-    for (const t of tokens) {
-      if (t.length < 2) continue;
-      const st = stemOf(t).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      html = html.replace(new RegExp('(' + st + '[а-яёa-z]{0,4})', 'gi'), '<mark>$1</mark>');
+    const stems = [...new Set(tokens.filter(t => t.length > 1).map(stemOf))]
+      .sort((a, b) => b.length - a.length)
+      .map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/е/g, '[её]'));
+    if (!stems.length) return escHtml(text);
+    const source = String(text);
+    const pattern = new RegExp('(?:' + stems.join('|') + ')[а-яёa-z]{0,4}', 'gi');
+    let html = '', end = 0;
+    for (const match of source.matchAll(pattern)) {
+      html += escHtml(source.slice(end, match.index)) + '<mark>' + escHtml(match[0]) + '</mark>';
+      end = match.index + match[0].length;
     }
-    return html;
+    return html + escHtml(source.slice(end));
   }
 
   function snippet(d, tokens) {
@@ -154,6 +166,11 @@ window.ercionInit = () => {
         escHtml(T.hint || 'Начните печатать — ищем по всему сайту.') + '</p>';
       return;
     }
+    if (loadError) {
+      box.innerHTML = '<p class="finder__hint">Не удалось загрузить поиск. Проверьте соединение и попробуйте ещё раз.</p>'
+        + '<button type="button" class="btn btn--ghost" data-search-retry>Повторить</button>';
+      return;
+    }
     const hits = search(q);
     if (!hits.length) {
       const tpl = T.nothing || 'По запросу «{q}» ничего не нашлось. Попробуйте другое слово.';
@@ -161,15 +178,17 @@ window.ercionInit = () => {
       return;
     }
     box.innerHTML = hits.map((d, i) => `
-      <a class="fres${i === 0 ? ' is-sel' : ''}" href="${(window.__BASE__||'')+d.u}">
+      <a class="fres${i === 0 ? ' is-sel' : ''}" href="${escHtml((window.__BASE__||'')+d.u)}">
         <span class="fres__cat">${escHtml(d.c === d.t ? '' : (d.c || ''))}</span>
         <span class="fres__title">${mark(d.t, tokens)}</span>
         <span class="fres__snip">${mark(snippet(d, tokens), tokens)}</span>
       </a>`).join('');
   }
 
+  let finderReturnFocus = null;
   const openFinder = () => {
     if (!finder) return;
+    finderReturnFocus = document.activeElement;
     finder.hidden = false;
     body.classList.add('nav-open-lock');
     document.documentElement.style.overflow = 'hidden';
@@ -179,8 +198,16 @@ window.ercionInit = () => {
   const closeFinder = () => {
     if (!finder) return;
     finder.hidden = true;
+    body.classList.remove('nav-open-lock');
     document.documentElement.style.overflow = '';
+    finderReturnFocus?.focus({ preventScroll: true });
   };
+
+  for (const [box, field] of [[results, input], [pResults, pInput]]) {
+    box?.addEventListener('click', e => {
+      if (e.target.closest('[data-search-retry]')) loadIndex().then(() => render(box, field.value));
+    });
+  }
 
   $('#searchBtn')?.addEventListener('click', openFinder);
   $('#searchBtn2')?.addEventListener('click', () => { setNav(false); openFinder(); });
@@ -195,7 +222,7 @@ window.ercionInit = () => {
 
   // клавиатура: / или Ctrl+K открывают поиск, стрелки листают, Esc закрывает
   document.addEventListener('keydown', e => {
-    const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName);
+    const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName) || e.target.isContentEditable;
     if (!typing && (e.key === '/' || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k'))) {
       e.preventDefault(); openFinder(); return;
     }
@@ -203,7 +230,13 @@ window.ercionInit = () => {
       if (finder && !finder.hidden) { closeFinder(); return; }
       if (body.classList.contains('nav-open')) setNav(false);
     }
-    if (finder && !finder.hidden && (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter')) {
+    if (finder && !finder.hidden && e.key === 'Tab') {
+      const controls = $$('input,button,a[href]', finder);
+      const first = controls[0], last = controls[controls.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last?.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); }
+    }
+    if (finder && !finder.hidden && e.target === input && (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter')) {
       const items = $$('.fres', results);
       if (!items.length) return;
       let i = items.findIndex(el => el.classList.contains('is-sel'));
@@ -309,7 +342,8 @@ window.ercionInit = () => {
       const tokens = q.split(/\s+/).filter(Boolean);
       let matched = 0;
       cards.forEach(card => {
-        const text = norm((card.textContent || '') + ' ' + (card.getAttribute('data-resources') || ''));
+        const text = norm((card.textContent || '') + ' ' + (card.getAttribute('data-search') || '')
+          + ' ' + (card.getAttribute('data-resources') || ''));
         const match = !tokens.length || tokens.every(t => text.includes(t));
         card.style.display = match ? '' : 'none';
         if (match) {
