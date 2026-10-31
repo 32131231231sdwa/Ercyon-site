@@ -48,20 +48,34 @@ commanders:
     assignment: Отряды Подавления (Гвардия)
     notes: ''
 army:
+  reserve: 3466
+  morale: ''
+  supply: ''
   notes: 'Январь 1509 года: исходный состав 2 000 человек. Подтверждённый бросок 17% дал 340 новых бойцов, следующий результат определил их как лучников. После пополнения — 2 340 человек, в том числе 590 лучников. 60 выживших ветеранов первых рядов образовали Отряды Подавления внутри реорганизованного войска и повторно к итогу не прибавляются. Повтор поста о совете учтён один раз.'
   units:
     - name: Тяжёлая пехота
       type: heavy_infantry
       count: 600
+      commander: ''
       location: Священная Земля во Стазерне
+      training: ''
+      equipment: ''
+      notes: ''
     - name: Лёгкая пехота
       type: light_infantry
-      count: 400
+      count: 978
+      commander: ''
       location: Священная Земля во Стазерне
+      training: ''
+      equipment: ''
+      notes: ''
     - name: Конница дружинников
       type: cavalry
       count: 600
+      commander: ''
       location: Священная Земля во Стазерне
+      training: ''
+      equipment: ''
       notes: Общая конница княжеских дружин. Прежнее подкрепление в 300 коней отдельно не прибавляется к новой переписи.
     - name: Лучники
       type: archers
@@ -69,9 +83,29 @@ army:
       notes: 250 по первоначальному составу + 340 прибывших лучников по результатам бросков от 28.10.2026 15:25–15:34.
     - name: Осадные и инженерные войска
       type: siege
-      count: 150
-      notes: 150 — личный состав категории ОС, а не число орудий.
-equipment: []
+      count: 698
+      commander: ''
+      location: ''
+      training: ''
+      equipment: ''
+      notes: ''
+equipment:
+  - name: Пушки (Шарфмеццы)
+    category: Орудия
+    quantity: 6
+    unit: шт.
+    material: Пушечная Бронза
+    quality: Среднее
+    assigned_to: ''
+    notes: ''
+  - name: Полевые Пушки (Фальконеты, Сакеры)
+    category: Орудия
+    quantity: 43
+    unit: шт.
+    material: Пушечная Бронза
+    quality: Среднее
+    assigned_to: ''
+    notes: ''
 resource_stock:
   - name: Золото, захваченное в Рифре
     location: Рифра
