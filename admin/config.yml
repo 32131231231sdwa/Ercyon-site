@@ -419,6 +419,9 @@ collections:
             widget: select
             required: false
             options:
+              # Явный пустой вариант предотвращает перестройку списка Sveltia
+              # при раскрытии вложенной формы и позволяет очистить состояние.
+              - { label: Не указано, value: '' }
               - { label: В строю, value: active }
               - { label: Ранен, value: wounded }
               - { label: В плену, value: captured }
