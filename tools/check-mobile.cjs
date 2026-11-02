@@ -35,7 +35,8 @@ const MIME={'.html':'text/html; charset=utf-8','.js':'text/javascript','.css':'t
       await goto('/');
       assert.equal(await page.locator('.mobile-dock a').count(),5);
       assert.deepEqual(await page.locator('.quick-grid a').allTextContents(),['Правила','Механики','Сеттинг и Лор','Государства','Картография','Новостные Свитки','Сезоны']);
-      assert.equal(await page.locator('.season-brief,#myCountrySelect,.home-news').count(),0);
+      assert.equal(await page.locator('.season-brief').count(),1);
+      assert.equal(await page.locator('#myCountrySelect,.home-news').count(),0);
       assert.equal(await page.locator('.mobile-dock a').nth(1).getAttribute('href'),prefix+'/rules/');
       assert.equal(await page.locator('.mobile-dock a').nth(2).getAttribute('href'),prefix+'/maps/');
       await capture('home-mobile');

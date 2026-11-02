@@ -5,6 +5,19 @@ description: 'Вики ролевого проекта «Эрцион»: пра�
 telegram_url: https://t.me/ErcionInfo
 telegram_label: Telegram проекта
 site_url: https://32131231231sdwa.github.io/Ercyon-site
+season:
+  number: 7
+  title: «Свет рока дней новых»
+  cover: /img/uploads/03EACD0B-73FA-44A7-9738-AFB338F54C67.webp
+  about: |-
+    Веет морской ветер по своей пустоши,
+    Зовя нас за собой, в дальний путь!
+  year: 1510 г.
+  mode: Открытый набор
+  state: idet
+  state_label: Активен
+  deadline: ''
+  note: ''
 categories:
   - id: rules
     title: Правила

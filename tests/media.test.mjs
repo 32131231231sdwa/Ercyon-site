@@ -57,13 +57,15 @@ test('связь стороны войны с досье работает при
   assert.match(html, /href="\/wars\/example\/"/);
 });
 
-test('главная показывает разделы мира и личный справочник без старого сезона', () => {
+test('главная показывает баннер сезона, разделы мира и личный справочник', () => {
   const html = fs.readFileSync(new URL('../dist/index.html', import.meta.url), 'utf8');
   assert.equal((html.match(/class="quick-grid"/g) || []).length, 1);
   assert.match(html, /aria-label="Разделы мира"/);
   assert.match(html, /id="homeFavorites"/);
   assert.match(html, /id="continueReading"/);
-  assert.doesNotMatch(html, /class="season-brief|id="myCountrySelect"|class="home-news"/);
+  assert.match(html, /class="season-brief season-brief--illustrated"/);
+  assert.match(html, /Свет рока дней новых/);
+  assert.doesNotMatch(html, /id="myCountrySelect"|class="home-news"/);
   for (const section of ['rules','mechanics','lore','countries','maps','news','season']) {
     assert.ok(html.includes(`/${section}/`), section);
   }

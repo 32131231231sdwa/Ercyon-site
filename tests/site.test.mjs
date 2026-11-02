@@ -66,7 +66,7 @@ test('справочники и карты восстановлены, запи�
   ]) assert.ok(uploads.includes(image), image);
   assert.ok(uploads.includes('Без названия60_20261025131426.png'));
   assert.ok(uploads.includes('Без названия58_20261003161015.webp'));
-  assert.ok(!uploads.some(f => f.includes('03EACD0B-73FA-44A7-9738-AFB338F54C67')));
+  assert.ok(uploads.includes('03EACD0B-73FA-44A7-9738-AFB338F54C67.webp'));
 });
 
 test('поисковый индекс хранит конец длинной технической страницы', () => {
