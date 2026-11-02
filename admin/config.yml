@@ -359,6 +359,14 @@ collections:
       - { name: capital, label: Столица, widget: string, required: false }
       - { name: founded, label: Год основания, widget: string, required: false }
       - { name: population, label: Население, widget: string, required: false }
+      - { name: flag, label: Флаг / знамя, widget: image, required: false,
+          hint: 'Показывается наверху досье, в каталоге и в связанных военных конфликтах.' }
+      - { name: coat_of_arms, label: Герб, widget: image, required: false }
+      - { name: map, label: Карта страны, widget: image, required: false,
+          hint: 'Основная карта в верхней таблице. Дополнительные карты можно оставить в тексте.' }
+      - { name: map_caption, label: Подпись к карте, widget: string, required: false }
+      - { name: flag_description, label: Описание знамени, widget: string, required: false,
+          hint: 'Если изображения ещё нет, можно описать символику словами.' }
       - { name: resources, label: Ресурсы, widget: list, required: false, allow_add: true,
           field: { name: item, label: Ресурс, widget: string } }
       - { name: magic, label: Школы Живицы, widget: string, required: false }
@@ -374,7 +382,7 @@ collections:
         label: Геральдический цвет
         widget: select
         default: '#3E6B4F'
-        hint: 'Цвет полоски и флажка в списке стран'
+        hint: 'Цвет рамки в списке стран; используется для символа, если флаг не загружен.'
         options:
           - { label: 🟩 Мох,              value: '#3E6B4F' }
           - { label: 🌲 Тёмный лес,       value: '#14352A' }
@@ -403,6 +411,10 @@ collections:
         fields:
           - { name: name, label: Имя, widget: string }
           - { name: title, label: Титул / звание, widget: string, required: false }
+          - { name: image, label: Портрет / изображение, widget: image, required: false }
+          - { name: image_alt, label: Описание изображения, widget: string, required: false,
+              hint: 'Для читателей с нарушением зрения. Если пусто, используется имя воеводы.' }
+          - { name: image_caption, label: Подпись к изображению, widget: string, required: false }
           - name: level
             label: Уровень
             widget: select
@@ -450,11 +462,15 @@ collections:
             summary: '{{fields.name}}'
             fields:
               - { name: name, label: Название отряда, widget: string }
+              - { name: image, label: Иллюстрация / знамя, widget: image, required: false }
+              - { name: image_alt, label: Описание изображения, widget: string, required: false }
+              - { name: image_caption, label: Подпись к изображению, widget: string, required: false }
               - name: type
                 label: Род войск
                 widget: select
                 required: false
                 options:
+                  - { label: Не указано, value: '' }
                   - { label: Лёгкая пехота (ЛП), value: light_infantry }
                   - { label: Тяжёлая пехота (ТП), value: heavy_infantry }
                   - { label: Кавалерия (КВ), value: cavalry }
@@ -477,6 +493,9 @@ collections:
         summary: '{{fields.name}}'
         fields:
           - { name: name, label: Наименование, widget: string }
+          - { name: image, label: Иллюстрация, widget: image, required: false }
+          - { name: image_alt, label: Описание изображения, widget: string, required: false }
+          - { name: image_caption, label: Подпись к изображению, widget: string, required: false }
           - { name: category, label: Категория, widget: string, required: false, hint: 'Оружие, доспехи, осадные орудия, корабли, транспорт…' }
           - { name: quantity, label: Количество, widget: number, value_type: int, min: 0, required: false }
           - { name: unit, label: Единица измерения, widget: string, required: false, hint: 'шт., комплектов, кораблей…' }
@@ -494,6 +513,9 @@ collections:
         hint: 'Дополняет прежнее поле «Ресурсы». Указывайте единицы и период дохода / расхода; пустой запас не равен нулю.'
         fields:
           - { name: name, label: Название ресурса, widget: string }
+          - { name: image, label: Иллюстрация, widget: image, required: false }
+          - { name: image_alt, label: Описание изображения, widget: string, required: false }
+          - { name: image_caption, label: Подпись к изображению, widget: string, required: false }
           - { name: amount, label: Запас, widget: number, value_type: float, min: 0, required: false }
           - { name: unit, label: Единица измерения, widget: string, required: false }
           - { name: production, label: Добыча / доход за ход, widget: string, required: false }
@@ -593,6 +615,11 @@ collections:
             widget: object
             fields:
               - { name: name, label: Название фракции / страны, widget: string }
+              - { name: country, label: Досье страны, widget: relation, collection: countries,
+                  search_fields: [title], value_field: slug, display_fields: [title], required: false,
+                  hint: 'Флаг и герб подхватываются из досье. Ниже можно загрузить символику именно этого периода или фракции.' }
+              - { name: flag, label: Флаг / знамя стороны, widget: image, required: false }
+              - { name: coat_of_arms, label: Герб стороны, widget: image, required: false }
               - { name: color, label: Геральдический цвет, widget: string, default: '#6B3A3F' }
               - { name: allies, label: Союзники (При поддержке), widget: list, required: false, field: { name: item, label: Союзник, widget: string } }
               - name: commanders
@@ -618,6 +645,11 @@ collections:
             widget: object
             fields:
               - { name: name, label: Название фракции / страны, widget: string }
+              - { name: country, label: Досье страны, widget: relation, collection: countries,
+                  search_fields: [title], value_field: slug, display_fields: [title], required: false,
+                  hint: 'Флаг и герб подхватываются из досье; изображения ниже заменяют их для этой стороны конфликта.' }
+              - { name: flag, label: Флаг / знамя стороны, widget: image, required: false }
+              - { name: coat_of_arms, label: Герб стороны, widget: image, required: false }
               - { name: color, label: Геральдический цвет, widget: string, default: '#3F4A52' }
               - { name: allies, label: Союзники (При поддержке), widget: list, required: false, field: { name: item, label: Союзник, widget: string } }
               - name: commanders

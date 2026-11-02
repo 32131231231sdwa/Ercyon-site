@@ -22,9 +22,10 @@ status: active
 color: '#6B3A3F'
 player: '@Miratorg2'
 summary: Ещё одно государство в горах?
+map: /img/uploads/IMG_1480.webp
+map_caption: Территория Царства
+flag: /img/uploads/EE2ABE9E-CC70-4B52-9097-69550D9F84EE.webp
 ---
-
-![Территория Царства](/img/uploads/IMG_1480.webp)
 
 ## ИСТОРИЯ:
 
@@ -33,5 +34,3 @@ summary: Ещё одно государство в горах?
 ## ЧЕГО ДОБИВАЕТСЯ:
 
 Создание банка, который позволил бы взять континент в экономические тиски.
-
-![Стяг Великий седаго Царства](/img/uploads/EE2ABE9E-CC70-4B52-9097-69550D9F84EE.webp)

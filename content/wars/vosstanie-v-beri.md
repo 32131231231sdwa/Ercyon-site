@@ -28,6 +28,7 @@ belligerents:
       - Санитарные караулы и дозорные
     casualties:
       - Минимальные потери среди солдат и мирного населения
+    country: novus
   side_b:
     name: Мятежники Бери
     color: '#7C302B'

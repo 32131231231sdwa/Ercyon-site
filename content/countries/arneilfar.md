@@ -18,9 +18,10 @@ status: active
 color: '#8A6B33'
 player: '@KrasnayaArmia'
 summary: ''
+map: /img/uploads/%D0%91%D0%B5%D0%B7%20%D0%BD%D0%B0%D0%B7%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F108_20261031121735.png
+map_caption: Территория Княжеств
+flag: /img/uploads/%D0%91%D0%B5%D0%B7%20%D0%BD%D0%B0%D0%B7%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F98_20261031120900.png
 ---
-
-![Территория Княжеств](/img/uploads/%D0%91%D0%B5%D0%B7%20%D0%BD%D0%B0%D0%B7%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F108_20261031121735.png)
 
 ## ИСТОРИЯ :
 
@@ -29,5 +30,3 @@ summary: ''
 ## ЧЕГО ДОБИВАЕТСЯ:
 
 Величия.
-
-![Знамя Государства ](/img/uploads/%D0%91%D0%B5%D0%B7%20%D0%BD%D0%B0%D0%B7%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F98_20261031120900.png)

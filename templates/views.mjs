@@ -7,6 +7,8 @@ import { icon, stateClass } from './layout.mjs';
 import { countryNavigation, countrySections } from './country-sections.mjs';
 import { countryData, countrySearchText } from '../lib/country-data.mjs';
 import { dashboard, mapViewer, searchFilters } from './companion.mjs';
+import { heraldry } from './media.mjs';
+import { countryInfobox } from './country-infobox.mjs';
 
 const head = (title, sub) => `<header class="phead">
   <h1>${esc(title)}</h1>
@@ -182,7 +184,7 @@ export function countriesIndex(ctx) {
       data-search="${esc(countrySearchText(f))}"
       data-pop="${popNum}"
       data-order="${c.order ?? 100}">
-      <span class="ccard__flag" aria-hidden="true"></span>
+      ${heraldry(f, c.title, 'ccard__flag')}
       <span class="ccard__main">
         <span class="ccard__title">${esc(c.title)}</span>
         <span class="ccard__meta">${esc(f.government || '')}${
@@ -210,6 +212,8 @@ export function country(ctx, d) {
     [L('countries.f_capital',    'Столица'),   f.capital],
     [L('countries.f_founded',    'Основана'),  f.founded],
     [L('countries.f_population', 'Население'), f.population],
+    ['Ресурсы', countryData(f).resources.join(', ')],
+    ['Знамя', f.flag_description],
     [L('countries.f_magic',      'Школы Живицы'), f.magic],
     [L('countries.f_player',     'Игрок'),     f.player],
   ].filter(([, v]) => v);
@@ -219,6 +223,7 @@ export function country(ctx, d) {
 
   const countryWars = (ctx.wars || []).filter(w => {
     const b = w.front?.belligerents || {};
+    if (b.side_a?.country === d.slug || b.side_b?.country === d.slug) return true;
     const t = d.title.trim().toLowerCase();
     const nameA = String(b.side_a?.name || '').toLowerCase();
     const nameB = String(b.side_b?.name || '').toLowerCase();
@@ -231,7 +236,6 @@ export function country(ctx, d) {
 <header class="phead phead--country" style="--flag:${esc(f.color || '#3E6B4F')}">
   <span class="phead__banner" aria-hidden="true">${icon('i-banner', 'ico ico--xl')}</span>
   <h1>${esc(d.title)}</h1>
-  <dl class="country-at-glance">${[[L('countries.f_ruler','Правитель'),f.ruler],[L('countries.f_capital','Столица'),f.capital]].filter(([,v])=>v).map(([k,v])=>`<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>
   ${d.summary ? `<details class="country-intro"><summary>О державе</summary><p class="phead__sub">${esc(d.summary)}</p></details>` : ''}
   <div class="phead__meta">
     <span class="pill pill--${st.cls}">${esc(st.label)}</span>
@@ -242,9 +246,7 @@ export function country(ctx, d) {
 ${countryNavigation()}
 <section class="dossier-overview" data-country-panel="country-overview" aria-labelledby="country-overview">
 <h2 class="h-sec" id="country-overview">Обзор державы</h2>
-<section class="passport" aria-label="Паспорт державы">
-  <dl>${rows.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>
-</section>
+${countryInfobox(f, d.title, rows)}
 
 <details class="country-history" open><summary>История и описание страны</summary>${prose(d.html)}</details>
 </section>
@@ -341,6 +343,13 @@ const warStatus = (L, key) => ({
   ended:  { label: L('wars.status_ended',  'Завершена'),  cls: 'ok'  },
 }[key] || { label: L('wars.status_ended', 'Завершена'), cls: 'ok' });
 
+function warSide(ctx, side = {}) {
+  side = side && typeof side === 'object' ? side : {};
+  const country = (ctx.countries || []).find(c => side.country
+    ? c.slug === side.country : c.title.trim().toLowerCase() === String(side.name || '').trim().toLowerCase());
+  return { ...side, flag: side.flag || country?.front.flag, coat_of_arms: side.coat_of_arms || country?.front.coat_of_arms };
+}
+
 function renderWarSide(side, isCmd, isForces, isCasualties) {
   if (!side) return '';
   if (isCmd) {
@@ -379,7 +388,7 @@ function renderWarSide(side, isCmd, isForces, isCasualties) {
   const allies = Array.isArray(side.allies) ? side.allies : (side.allies ? [side.allies] : []);
   return `
     <div class="warbox__faction" style="--flag:${esc(side.color || '#3E6B4F')}">
-      <span class="warbox__flag" aria-hidden="true"></span>
+      ${heraldry(side, side.name || 'Сторона', 'warbox__flag')}
       <span class="warbox__fname">${esc(side.name || 'Сторона')}</span>
     </div>
     ${allies.length ? `
@@ -394,8 +403,8 @@ export function war(ctx, d) {
   const f = d.front || {};
   const st = warStatus(L, f.status);
   const b = f.belligerents || {};
-  const sideA = b.side_a || {};
-  const sideB = b.side_b || {};
+  const sideA = warSide(ctx, b.side_a);
+  const sideB = warSide(ctx, b.side_b);
 
   const hasCmd = (sideA.commanders?.length || sideB.commanders?.length);
   const hasForces = (sideA.forces?.length || sideB.forces?.length);
@@ -475,6 +484,8 @@ export function warsIndex(ctx) {
     const f = w.front || {};
     const st = warStatus(L, f.status);
     const b = f.belligerents || {};
+    const heraldA = warSide(ctx, b.side_a);
+    const heraldB = warSide(ctx, b.side_b);
     const sideA = b.side_a?.name || '';
     const sideB = b.side_b?.name || '';
 
@@ -488,12 +499,12 @@ export function warsIndex(ctx) {
       ${(sideA || sideB) ? `
         <div class="wcard__versus">
           <span class="wcard__side" style="--flag:${esc(b.side_a?.color || '#3E6B4F')}">
-            <span class="warbox__flag" aria-hidden="true"></span>
+            ${heraldry(heraldA, sideA, 'warbox__flag')}
             <span>${esc(sideA)}</span>
           </span>
           <span class="wcard__vs">против</span>
           <span class="wcard__side" style="--flag:${esc(b.side_b?.color || '#6B3A3F')}">
-            <span class="warbox__flag" aria-hidden="true"></span>
+            ${heraldry(heraldB, sideB, 'warbox__flag')}
             <span>${esc(sideB)}</span>
           </span>
         </div>` : ''}

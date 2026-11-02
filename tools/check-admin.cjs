@@ -74,6 +74,38 @@ const mime = { '.html': 'text/html; charset=utf-8', '.yml': 'text/yaml; charset=
     await page.getByText(/Княжество Сребрно/).first().dblclick();
     await page.getByText('Название страны', { exact: true }).first().waitFor();
     const field = key => page.locator(`section.field[data-key-path="${key}"]`).first();
+    // Different bytes avoid the CMS intentionally reusing the first uploaded image.
+    const testImages = ['app-icon-512.png', 'uploads/03EACD0B-73FA-44A7-9738-AFB338F54C67-700.webp',
+      'uploads/Без названия98_20261031120221-700.webp', 'uploads/Без названия100_20261030113225-700.webp',
+      'uploads/Без названия106_20261031114920-700.webp', 'uploads/Без названия108_20261031121735-700.webp',
+      'uploads/Без названия98_20261031115117-700.webp'];
+    let imageIndex = 0;
+    const uploadImage = async key => {
+      await field(key).scrollIntoViewIfNeeded();
+      const source = testImages[imageIndex++], extension = path.extname(source);
+      const name = 'cms-' + key.replace(/[^a-z0-9]/gi, '-') + extension;
+      await field(key).locator('input[type="file"]').first().setInputFiles({ name, mimeType: extension === '.png' ? 'image/png' : 'image/webp',
+        buffer: fs.readFileSync(path.join(root, 'static/img', source)) });
+      await field(key).locator('img').first().waitFor();
+      return '/img/uploads/' + name;
+    };
+    const reachRoot = async key => {
+      await page.mouse.move(Math.min(300, page.viewportSize().width / 2), 400);
+      await page.mouse.wheel(0, -20000);
+      for (let i = 0; i < 35 && !await field(key).count(); i++) {
+        await page.mouse.wheel(0, 500); await page.waitForTimeout(100);
+      }
+      await field(key).scrollIntoViewIfNeeded();
+    };
+    const openList = async (key, label, index) => {
+      await field(key).scrollIntoViewIfNeeded();
+      if (!await field(key).locator(`button[aria-controls$="-item-${index}-body"]`).count()) {
+        await field(key).getByText(label, { exact: true }).first().click();
+      }
+      const button = field(key).locator(`button[aria-controls$="-item-${index}-body"]`);
+      if (await button.getAttribute('aria-expanded') === 'false') await button.click();
+      await field(`${key}.${index}.name`).locator('input').waitFor();
+    };
     const openCountry = async () => {
       await page.getByText(/Княжество Сребрно/).first().dblclick();
       await page.getByRole('button', { name: 'Сохранить', exact: true }).waitFor();
@@ -106,15 +138,22 @@ const mime = { '.html': 'text/html; charset=utf-8', '.yml': 'text/yaml; charset=
     const save = async predicate => {
       await page.getByRole('button', { name: 'Сохранить', exact: true }).click();
       const deadline = Date.now() + 8000;
+      let lastSaved;
       while (Date.now() < deadline) {
         try {
           const data = parse(await readCountry());
+          lastSaved = data;
           if (predicate(data)) return data;
         } catch (error) {
-          if (!error.message.includes('NotFoundError')) throw error;
+          // OPFS may invalidate a read snapshot while the CMS is replacing it.
+          if (!/NotFoundError|NotReadableError/.test(error.message)) throw error;
         }
         await page.waitForTimeout(100);
       }
+      console.error('Last saved media:', lastSaved && { flag: lastSaved.flag, coat_of_arms: lastSaved.coat_of_arms, map: lastSaved.map,
+        units: lastSaved.army?.units?.map(u => ({ name: u.name, image: u.image, type: u.type, count: u.count })),
+        equipment: lastSaved.equipment?.map(e => e.image), resources: lastSaved.resource_stock?.map(r => r.image) });
+      console.error('Invalid fields:', await page.locator('[aria-invalid="true"]').evaluateAll(items => items.map(e => e.closest('[data-key-path]')?.dataset.keyPath)));
       console.error('Country files:', await page.evaluate(async () => {
         const root = await navigator.storage.getDirectory();
         const content = await root.getDirectoryHandle('content');
@@ -123,15 +162,22 @@ const mime = { '.html': 'text/html; charset=utf-8', '.yml': 'text/yaml; charset=
         for await (const [name] of countries.entries()) files.push(name);
         return files;
       }));
-      throw new Error('Сохранение воеводы не завершилось');
+      throw new Error('Сохранение досье не завершилось');
     };
     const original = parse(fixtures.find(([rel]) => rel === 'content/countries/srebrno.md')[1]);
+    let data;
     await reachCommanders(); await openRecord(0);
+    const portrait = await uploadImage('commanders.0.image');
+    await field('commanders.0.image_alt').locator('input').fill('Проверочное описание портрета');
+    await field('commanders.0.image_caption').locator('input').fill('Проверочная подпись');
     await field('commanders.0.name').locator('input').fill('Проверочный воевода');
     await choose('commanders.0.level', '0 — Без генерала / Толпа (навык 0)');
     await choose('commanders.0.status', 'Ранен');
-    let data = await save(value => value.commanders[0].name === 'Проверочный воевода' && value.commanders[0].status === 'wounded');
+    data = await save(value => value.commanders[0].name === 'Проверочный воевода' && value.commanders[0].status === 'wounded');
     assert.equal(data.commanders[0].level, 0);
+    assert.equal(data.commanders[0].image, portrait);
+    assert.equal(data.commanders[0].image_alt, 'Проверочное описание портрета');
+    assert.equal(data.commanders[0].image_caption, 'Проверочная подпись');
     for (const key of ['title', 'resources', 'army', 'equipment', 'resource_stock']) assert.deepEqual(data[key], original[key]);
     console.log('PASS существующий воевода: раскрытие, уровень 0, смена состояния и сохранение');
 
@@ -139,6 +185,8 @@ const mime = { '.html': 'text/html; charset=utf-8', '.yml': 'text/yaml; charset=
     await openCountry();
     await reachCommanders(); await openRecord(0);
     assert.equal(await field('commanders.0.name').locator('input').inputValue(), 'Проверочный воевода');
+    assert.equal(await field('commanders.0.image_alt').locator('input').inputValue(), 'Проверочное описание портрета');
+    assert.ok(await field('commanders.0.image').locator('img').count());
     assert.match(await field('commanders.0.status').getByRole('combobox').innerText(), /Ранен/);
     await choose('commanders.0.level', '5 — Легендарный стратег (навык 50)');
     await choose('commanders.0.status', 'Не указано');
@@ -167,6 +215,40 @@ const mime = { '.html': 'text/html; charset=utf-8', '.yml': 'text/yaml; charset=
       await page.screenshot({ path: path.join(process.env.SCREENSHOT_DIR, 'admin-commanders-mobile.png') });
     }
     console.log('PASS мобильная панель: воеводы редактируются после обновления, ошибок JavaScript нет');
+
+    await page.waitForURL(/#\/collections\/countries$/);
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await openCountry();
+    const media = {};
+    for (const key of ['flag', 'coat_of_arms', 'map']) {
+      await reachRoot(key); media[key] = await uploadImage(key);
+    }
+    await reachRoot('army');
+    const armyToggle = field('army').locator('button[aria-controls$="-item-list"]').first();
+    if (await armyToggle.getAttribute('aria-expanded') === 'false') await armyToggle.click();
+    await reachRoot('army.units');
+    await openList('army.units', 'Отряды', 0);
+    media.unit = await uploadImage('army.units.0.image');
+    await field('army.units.0.image_caption').locator('input').fill('Проверочное знамя отряда');
+    // The optional nested string selector must also accept a completely new unit.
+    await field('army.units').getByRole('button', { name: /Добавить.*отряд/ }).click();
+    const newUnit = original.army.units.length;
+    await openList('army.units', 'Отряды', newUnit);
+    await field(`army.units.${newUnit}.name`).locator('input').fill('Проверочный отряд без переписи');
+    await choose(`army.units.${newUnit}.type`, 'Не указано');
+    await reachRoot('equipment'); await openList('equipment', 'Снаряжение', 0);
+    media.equipment = await uploadImage('equipment.0.image');
+    await reachRoot('resource_stock'); await openList('resource_stock', 'Ресурсы — учёт запасов', 0);
+    media.resource = await uploadImage('resource_stock.0.image');
+    data = await save(value => value.flag === media.flag && value.army.units.length === original.army.units.length + 1 && value.resource_stock[0].image === media.resource);
+    assert.equal(data.coat_of_arms, media.coat_of_arms); assert.equal(data.map, media.map);
+    assert.equal(data.army.units[0].image, media.unit); assert.equal(data.equipment[0].image, media.equipment);
+    assert.equal(data.commanders[0].image, portrait);
+    assert.ok(!data.army.units[newUnit].type); assert.ok(data.army.units[newUnit].count == null || data.army.units[newUnit].count === '');
+    await page.reload(); await openCountry();
+    for (const key of ['flag', 'coat_of_arms', 'map']) { await reachRoot(key); assert.ok(await field(key).locator('img').count()); }
+    assert.deepEqual(errors, []);
+    console.log('PASS флаг, герб, карта, отряд, снаряжение и ресурс: загрузка, сохранение и обновление страницы');
   } finally {
     await browser?.close(); server.close(); server.closeAllConnections();
   }

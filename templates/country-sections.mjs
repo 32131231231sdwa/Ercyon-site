@@ -1,5 +1,6 @@
 import { esc } from '../build.mjs';
 import { icon } from './layout.mjs';
+import { illustration, mediaImage } from './media.mjs';
 import { COUNTRY_SECTIONS, COMMANDER_LEVELS, COMMANDER_STATUSES, UNIT_TYPES,
   countryData, commanderLevel, nonNegativeNumber, hasValue } from '../lib/country-data.mjs';
 
@@ -35,6 +36,7 @@ export function countrySections(front) {
     return `<article class="dossier-card">
       <div class="dossier-card__head"><h3>${esc(c.name)}</h3>${status ? `<span class="pill pill--${status[1]}">${status[0]}</span>` : ''}</div>
       ${hasValue(c.title) ? `<p class="dossier-card__subtitle">${esc(c.title)}</p>` : ''}
+      ${illustration(c)}
       <div class="commander-rank"><span>${level === null ? 'Уровень не указан' : `Уровень ${level} · ${COMMANDER_LEVELS[level]}`}</span>
       ${level !== null ? `<strong>Навык +${level * 10}</strong>` : ''}</div>
       ${facts([['Специализация', c.specialty], ['Командует', c.assignment]])}${note(c.notes)}
@@ -46,8 +48,8 @@ export function countrySections(front) {
     <a href="/mechanics/war/">Правила ведения войн</a></details>`;
 
   const unitCards = units.map(u => `<details class="dossier-card unit-card">
-    <summary><span class="unit-name">${esc(u.name)}</span><span class="tag">${esc(UNIT_TYPES[u.type] || u.type || 'Тип не указан')}</span><span class="unit-count">${amount(u.count, 'чел.')}</span></summary>
-    ${facts([['Бойцов / экипаж', amount(u.count, 'чел.')], ['Командир', u.commander], ['Расположение', u.location],
+    <summary>${mediaImage(u.image, { alt: u.image_alt || `Иллюстрация: ${u.name}`, className: 'unit-thumb', sizes: '48px' })}<span class="unit-name">${esc(u.name)}</span><span class="tag">${esc(UNIT_TYPES[u.type] || u.type || 'Тип не указан')}</span><span class="unit-count">${amount(u.count, 'чел.')}</span></summary>
+    ${illustration(u)}${facts([['Бойцов / экипаж', amount(u.count, 'чел.')], ['Командир', u.commander], ['Расположение', u.location],
       ['Подготовка', u.training], ['Вооружение', u.equipment]])}${note(u.notes)}</details>`).join('');
   const armyFacts = facts([
     ['Численность по указанным отрядам', total === null ? 'Не указана' : `${number(total)} чел.${partial ? ' (данные неполные)' : ''}`],
@@ -57,10 +59,11 @@ export function countrySections(front) {
 
   const equipmentCards = equipment.map(e => `<article class="dossier-card">
     <div class="dossier-card__head"><h3>${esc(e.name)}</h3>${hasValue(e.category) ? `<span class="tag">${esc(e.category)}</span>` : ''}</div>
+    ${illustration(e)}
     ${facts([['Количество', amount(e.quantity, e.unit)], ['Материал', e.material], ['Качество', e.quality], ['Выдано', e.assigned_to]])}
     ${note(e.notes)}</article>`).join('');
   const stockCards = stock.map(r => `<article class="dossier-card">
-    <h3>${esc(r.name)}</h3>${facts([['Запас', amount(r.amount, r.unit)], ['Добыча / доход за ход', r.production],
+    <h3>${esc(r.name)}</h3>${illustration(r)}${facts([['Запас', amount(r.amount, r.unit)], ['Добыча / доход за ход', r.production],
       ['Расход за ход', r.consumption], ['Расположение', r.location]])}${note(r.notes)}</article>`).join('');
 
   return section(1, (commanderCards ? `<div class="dossier-grid">${commanderCards}</div>`

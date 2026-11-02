@@ -816,7 +816,7 @@ export function variantSteps(rel) {
 }
 
 /** Что дописать картинке из текста страницы: размеры и набор копий. */
-function imgAttrs(src) {
+export function imgAttrs(src, sizes = IMG_SIZES) {
   const raw = String(src || '').split(/[?#]/)[0];
   if (!raw.startsWith('/')) return '';
   let rel;
@@ -835,7 +835,7 @@ function imgAttrs(src) {
   else if (size.w > 900) singleImages.add(rel);
 
   return ` width="${size.w}" height="${size.h}"`
-       + (set.length ? ` srcset="${set.join(', ')}" sizes="${IMG_SIZES}"` : '');
+       + (set.length ? ` srcset="${set.join(', ')}" sizes="${esc(sizes)}"` : '');
 }
 
 /** Шрифты и картинки оформления лежат текстом в assets/*.b64.json —

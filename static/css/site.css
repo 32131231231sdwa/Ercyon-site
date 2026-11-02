@@ -739,6 +739,33 @@ body.nav-open .scrim{ opacity:1; }
 @media(min-width:58rem){ .dossier-grid{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @media print{ .dossier-nav{ display:none; } .dossier-card{ break-inside:avoid; } }
 
+/* Символика и иллюстрации досье. Изображения сохраняют свои пропорции. */
+.heraldry{display:inline-flex;align-items:center;gap:.35rem;flex:none;grid-area:1/1;max-width:5.5rem;}
+.heraldry img{display:block;width:2.4rem;height:2.8rem;object-fit:contain;}
+.warbox__faction .heraldry,.wcard__side .heraldry{max-width:4.5rem;}
+.warbox__faction .heraldry img,.wcard__side .heraldry img{width:1.8rem;height:2.2rem;}
+.country-infobox{margin-bottom:1.5rem;border:1px solid var(--parch-e);border-radius:var(--radius);background:#fff6;overflow:hidden;}
+.country-infobox__title{margin:0;padding:.65rem 1rem;background:#e9dfc9;font:600 1.25rem/1.35 var(--display);text-align:center;color:var(--deep);border-bottom:1px solid var(--parch-e);}
+.country-infobox__body{min-width:0;}
+.country-infobox__visuals{padding:1rem;min-width:0;}
+.country-symbols{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));align-items:start;gap:1rem;}
+.country-symbol,.country-map{margin:0;text-align:center;min-width:0;}
+.country-symbol a,.country-map a{display:flex;align-items:center;justify-content:center;}
+.country-symbol img{width:100%;height:8rem;object-fit:contain;}
+.country-symbol figcaption,.country-map figcaption,.dossier-media figcaption{margin-top:.45rem;font:.8rem/1.5 var(--ui);color:var(--ink-2);overflow-wrap:anywhere;}
+.country-map{margin-top:1rem;}
+.country-map:only-child{margin-top:0;}
+.country-map img{display:block;max-width:100%;height:auto;max-height:26rem;object-fit:contain;}
+.country-infobox__facts{width:100%;border-collapse:collapse;table-layout:fixed;font:.9rem/1.55 var(--ui);}
+.country-infobox__facts th,.country-infobox__facts td{padding:.65rem .85rem;border-top:1px solid var(--parch-e);text-align:left;vertical-align:top;overflow-wrap:anywhere;}
+.country-infobox__facts th{width:36%;font-weight:600;color:var(--deep);background:#e9dfc933;}
+.country-infobox__facts td{color:var(--ink);}
+.dossier-media{margin:.85rem 0;}
+.dossier-media a{display:flex;justify-content:center;padding:.45rem;background:#fff8;border:1px solid var(--parch-e);border-radius:4px;}
+.dossier-media img{display:block;width:100%;height:auto;max-height:18rem;object-fit:contain;}
+.unit-thumb{width:3rem;height:3rem;object-fit:contain;flex:none;}
+@media(min-width:46rem){.country-infobox__body--illustrated{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);align-items:start;}.country-infobox__body--illustrated .country-infobox__facts{border-left:1px solid var(--parch-e);}.country-infobox__facts tr:first-child th,.country-infobox__facts tr:first-child td{border-top:0;}}
+
 /* договоры */
 .trows{ display:grid; gap:.6rem; }
 .trow{

@@ -25,10 +25,13 @@ const MIME={'.html':'text/html; charset=utf-8','.js':'text/javascript','.css':'t
     const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,reducedMotion:'reduce'});
     const page=await context.newPage();page.setDefaultTimeout(8000);page.on('pageerror',e=>errors.push(e.message));
     const goto=route=>page.goto(base+route,{waitUntil:'load'});
-    const capture=async name=>{if(shots){fs.mkdirSync(shots,{recursive:true});await page.screenshot({path:path.join(shots,name+'.png')});}};
-    await check('главная: быстрые ссылки в первом экране и нижняя навигация',async()=>{
+    const capture=async name=>{if(shots){fs.mkdirSync(shots,{recursive:true});await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));await page.screenshot({path:path.join(shots,name+'.png')});}};
+    await check('главная: баннер, личная страна, разделы внизу и нижняя навигация',async()=>{
       await goto('/');assert.equal(await page.locator('.mobile-dock a').count(),5);
-      assert.ok(await page.locator('.quick-grid').first().evaluate(e=>e.getBoundingClientRect().bottom<innerHeight-65));
+      assert.equal(await page.locator('.quick-grid').count(),1);
+      assert.equal(await page.locator('.home-world .quick-grid a').count(),6);
+      assert.ok(await page.locator('.home-world').evaluate(e=>e.getBoundingClientRect().top>document.querySelector('.player-home').getBoundingClientRect().bottom));
+      assert.ok(await page.locator('.season-brief__cover').evaluate(e=>e.complete && e.naturalWidth>0));
       await page.locator('#myCountrySelect').selectOption('/countries/aitia/');
       await page.reload();assert.equal(await page.locator('#myCountrySelect').inputValue(),'/countries/aitia/');
       await capture('home-mobile');
@@ -46,6 +49,19 @@ const MIME={'.html':'text/html; charset=utf-8','.js':'text/javascript','.css':'t
       await page.goBack();assert.ok(await page.locator('[data-country-panel="country-army"]').isVisible());
       await goto('/countries/aitia/#country-resources');assert.ok(await page.locator('.dossier-legacy').isVisible());
       await capture('country-mobile');
+    });
+    await check('символика наверху досье и флаги сторон конфликта',async()=>{
+      await goto('/countries/ausgard/');
+      assert.equal(await page.locator('.country-symbols img').count(),1);
+      assert.equal(await page.locator('.country-map img').count(),1);
+      assert.ok(await page.locator('.country-infobox').evaluate(e=>e.getBoundingClientRect().bottom<=document.querySelector('.country-history').getBoundingClientRect().top));
+      assert.equal(await page.locator('.country-history .prose img').count(),1);
+      await capture('aysgard-infobox-mobile');
+      await goto('/wars/morskie-reydy-i-diversii/');
+      assert.equal(await page.locator('.warbox__faction .heraldry img').count(),2);
+      assert.equal(await page.locator('.warbox__faction .warbox__flag').count(),0);
+      await capture('war-heraldry-mobile');
+      await goto('/countries/aitia/#country-resources');
     });
     await check('оглавление открывает скрытое описание страны',async()=>{
       await page.locator('.reader-tools [data-open-reader]').click();
@@ -113,7 +129,7 @@ const MIME={'.html':'text/html; charset=utf-8','.js':'text/javascript','.css':'t
       } finally {networkEnabled=true;await context.setOffline(false);}
     });
     await check('320–1440px: нет горизонтального переполнения',async()=>{
-      for(const width of [320,390,768,1440]){await page.setViewportSize({width,height:900});for(const route of ['/','/countries/aitia/','/mechanics/war/']){await goto(route);const excess=await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth);assert.ok(excess<=2,`${width} ${route}: ${excess}`);}if(width===1440)await capture('desktop');}
+      for(const width of [320,390,768,1440]){await page.setViewportSize({width,height:900});for(const route of ['/','/countries/aitia/','/countries/ausgard/','/countries/tan-boro/','/wars/morskie-reydy-i-diversii/','/mechanics/war/']){await goto(route);const excess=await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth);assert.ok(excess<=2,`${width} ${route}: ${excess}`);}if(width===1440)await capture('desktop');}
     });
     await check('без JavaScript доступны все разделы и исходные карты',async()=>{
       const nojs=await browser.newContext({javaScriptEnabled:false,viewport:{width:390,height:844}});const p=await nojs.newPage();

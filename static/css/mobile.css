@@ -65,6 +65,10 @@ dialog::backdrop{background:#06120dcc;}
 .season-brief .pill{background:#ffffff12;color:#c2e6bd;border-color:#c2e6bd55;font-size:.65rem;}
 .season-brief h2{font:600 1.65rem/1.2 var(--display);margin:.45rem 0;color:var(--parch);}
 .season-brief p{margin:.35rem 0 0;font:400 .81rem/1.6 var(--ui);color:#d7dfca;}
+.season-brief--illustrated{position:relative;isolation:isolate;overflow:hidden;min-height:190px;display:flex;align-items:flex-end;}
+.season-brief__cover{position:absolute;inset:0;z-index:0;width:100%;height:100%;object-fit:cover;}
+.season-brief--illustrated::after{content:'';position:absolute;inset:0;z-index:1;background:linear-gradient(0deg,#102b22f2 0%,#102b22ad 55%,#102b2233 100%);}
+.season-brief__content{position:relative;z-index:2;width:100%;}
 .quick-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.6rem;margin:1rem 0;}
 .quick-grid a{display:flex;align-items:center;gap:.6rem;min-height:62px;padding:.85rem .75rem;border:1px solid var(--parch-e);border-radius:10px;background:#fff8;color:var(--deep);text-decoration:none;font:600 .82rem/1.4 var(--ui);}
 .quick-grid a>span:last-child:not(:only-child){margin-left:auto;}
@@ -91,6 +95,10 @@ dialog::backdrop{background:#06120dcc;}
 .new-badge{color:var(--moss)!important;}
 .home-world,.install-help{margin-top:1.5rem;padding:1rem 0;border-top:1px solid var(--parch-e);}
 .home-world summary,.install-help summary{min-height:44px;cursor:pointer;color:var(--moss);}
+.home-about{margin-top:1.5rem;color:var(--ink-2);}
+.home-about>summary{min-height:44px;cursor:pointer;color:var(--moss);padding:.65rem 0;}
+.home-world .section-heading{margin-top:0;}
+@media(min-width:46rem){.season-brief--illustrated{min-height:240px;}.home-world .quick-grid{grid-template-columns:repeat(3,minmax(0,1fr));}}
 .search-filters{display:flex;gap:.35rem;padding:.65rem .8rem;border-bottom:1px solid var(--parch-e);font:500 .79rem/1.2 var(--ui);overflow-x:auto;}
 .search-filters button{flex:none;min-height:44px;border:1px solid var(--parch-e);border-radius:22px;padding:.45rem .85rem;color:var(--deep);}
 .search-filters button[aria-pressed=true]{background:var(--deep);color:var(--parch);border-color:var(--deep);}

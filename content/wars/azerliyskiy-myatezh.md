@@ -31,6 +31,7 @@ belligerents:
     casualties:
       - ~3 200 погибших от моровой язвы и холода
       - ~1 100 павших в осадах ущелий
+    country: valliankindom
   side_b:
     name: Лига Теократических Баронов
     color: '#8A6B33'
@@ -41,7 +42,7 @@ belligerents:
       - name: Епископ Маврикий †
         title: Духовный вождь восстания
         status: killed
-      - name: Барон Альбрехт фон Кауниц #†
+      - name: Барон Альбрехт фон Кауниц
         title: Предводитель наёмных рот
         status: captured
     forces:
