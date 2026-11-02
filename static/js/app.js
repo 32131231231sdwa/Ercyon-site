@@ -76,7 +76,7 @@ window.ercionInit = () => {
   const norm = s => String(s).toLowerCase().replace(/ё/g, 'е').replace(/[^\wа-я0-9\s-]/gi, ' ');
   const aliases = {лп:'легкая пехота',тп:'тяжелая пехота',кв:'кавалерия',лч:'лучники',ос:'осадные',ст:'степь',рв:'равнина',ск:'скалы',бл:'болота',лс:'лес'};
   const tokensFor = q => norm(q).split(/\s+/).filter(t=>t.length>1).flatMap(t=>(aliases[t]||t).split(' '));
-  let searchFilter = ['country','rules','news'].includes(new URLSearchParams(location.search).get('type')) ? new URLSearchParams(location.search).get('type') : 'all';
+  let searchFilter = ['rules','mechanics'].includes(new URLSearchParams(location.search).get('type')) ? new URLSearchParams(location.search).get('type') : 'all';
 
   const prepare = data =>
     data.map(d => ({ ...d, _t: norm(d.t), _s: norm(d.s || ''), _x: norm(d.x || ''),
@@ -110,9 +110,7 @@ window.ercionInit = () => {
     if (!tokens.length) return [];
     const out = [];
     for (const d of index) {
-      if (searchFilter === 'country' && d.k !== 'country') continue;
-      if (searchFilter === 'news' && d.k !== 'news') continue;
-      if (searchFilter === 'rules' && !['rules','mechanics'].includes(d.category)) continue;
+      if (searchFilter !== 'all' && d.category !== searchFilter) continue;
       let score = 0, all = true;
       for (const t of tokens) {
         const st = stemOf(t);

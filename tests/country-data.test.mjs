@@ -52,14 +52,12 @@ test('поисковый текст включает воевод, отряды,
   }
 });
 
-test('CMS сохраняет новые поля и ограничения чисел', () => {
+test('CMS разрешает страницам только категории правил и механик', () => {
   const config = yaml.load(fs.readFileSync(new URL('../admin/config.yml', import.meta.url), 'utf8'));
-  const fields = config.collections.find(c => c.name === 'countries').fields;
-  for (const name of ['resources', 'commanders', 'army', 'equipment', 'resource_stock']) {
-    assert.ok(fields.some(f => f.name === name), name);
-  }
-  const levels = fields.find(f => f.name === 'commanders').fields.find(f => f.name === 'level').options;
-  assert.deepEqual(levels.map(l => l.value), [0, 1, 2, 3, 4, 5]);
+  const fields = config.collections.find(c => c.name === 'pages').fields;
+  const category = fields.find(f => f.name === 'category');
+  assert.equal(category.widget, 'select');
+  assert.deepEqual(category.options.map(o => o.value), ['rules', 'mechanics']);
 });
 
 test('раненый командующий не помечается погибшим по символу в имени', () => {

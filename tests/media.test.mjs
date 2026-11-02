@@ -57,25 +57,24 @@ test('связь стороны войны с досье работает при
   assert.match(html, /href="\/wars\/example\/"/);
 });
 
-test('главная использует загруженную обложку и один видимый каталог внизу', () => {
+test('главная показывает два технических раздела и личный справочник', () => {
   const html = fs.readFileSync(new URL('../dist/index.html', import.meta.url), 'utf8');
-  assert.match(html, /class="season-brief__cover"[^>]+loading="eager"/);
   assert.equal((html.match(/class="quick-grid"/g) || []).length, 1);
-  assert.ok(html.indexOf('class="home-world"') > html.indexOf('class="player-home"'));
-  assert.ok(html.indexOf('class="home-world"') > html.indexOf('id="continueReading"'));
-  assert.doesNotMatch(html, /<details class="home-world"/);
+  assert.match(html, /aria-label="Разделы справочника"/);
+  assert.match(html, /id="homeFavorites"/);
+  assert.match(html, /id="continueReading"/);
+  assert.doesNotMatch(html, /season-brief|myCountrySelect|home-news|О мире|application\/rss\+xml/);
+  assert.doesNotMatch(html, /href="[^" ]*\/(countries|news|wars|treaties|lore|maps|season)\//);
 });
 
-test('CMS предоставляет загрузку символики и иллюстраций во всех требуемых формах', () => {
+test('CMS оставляет настройки и технические страницы, без сезонных полей и связей досье', () => {
   const config = yaml.load(fs.readFileSync(new URL('../admin/config.yml', import.meta.url), 'utf8'));
-  const country = config.collections.find(c => c.name === 'countries').fields;
-  for (const key of ['flag', 'coat_of_arms', 'map']) assert.equal(country.find(f => f.name === key).widget, 'image');
-  for (const fields of [country.find(f => f.name === 'commanders').fields,
-    country.find(f => f.name === 'army').fields.find(f => f.name === 'units').fields,
-    country.find(f => f.name === 'equipment').fields, country.find(f => f.name === 'resource_stock').fields]) {
-    assert.equal(fields.find(f => f.name === 'image').widget, 'image');
-    for (const key of ['image_alt', 'image_caption']) assert.equal(fields.find(f => f.name === key).required, false);
-  }
-  const sides = config.collections.find(c => c.name === 'wars').fields.find(f => f.name === 'belligerents').fields;
-  for (const side of sides) for (const key of ['flag', 'coat_of_arms']) assert.equal(side.fields.find(f => f.name === key).widget, 'image');
+  assert.deepEqual(config.collections.map(c => c.name), ['settings', 'pages']);
+  const settings = config.collections.find(c => c.name === 'settings');
+  assert.ok(settings.files.every(f => ['site', 'labels', 'home'].includes(f.name)));
+  assert.ok(!settings.files.find(f => f.name === 'site').fields.some(f => f.name === 'season'));
+  const pages = config.collections.find(c => c.name === 'pages');
+  assert.equal(pages.fields.find(f => f.name === 'body').widget, 'markdown');
+  assert.ok(!pages.fields.some(f => f.name === 'map_points'));
+  assert.doesNotMatch(JSON.stringify(config), /"collection":"(countries|news|wars|treaties)"/);
 });

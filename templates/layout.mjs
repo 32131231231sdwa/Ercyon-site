@@ -95,10 +95,6 @@ function navHtml(menu, current, L) {
 function crumbs(doc, L, exists) {
   const parts = [{ t: L('nav.home', 'Главная'), u: '/' }];
   if (doc.category) parts.push({ t: doc.category.title, u: `/${doc.category.id}/` });
-  if (doc.kind === 'country') parts.push({ t: L('countries.index_title', 'Досье стран'), u: '/countries/' });
-  if (doc.kind === 'treaty') parts.push({ t: L('treaties.index_title', 'Реестр договоров'), u: '/treaties/' });
-  if (doc.kind === 'war') parts.push({ t: L('wars.index_title', 'Хроника войн и битв'), u: '/wars/' });
-  if (doc.kind === 'news') parts.push({ t: L('news.index_title', 'Мировые новости'), u: '/news/' });
   const last = doc.url !== '/' ? doc.title : null;
 
   const seen = new Set();
@@ -134,8 +130,6 @@ export function renderPage(ctx, doc) {
     : `${doc.title} — ${S.site_title}`;
   const desc = doc.summary || S.description || '';
   const base = (S.site_url || '').replace(/\/$/, '');
-  const season = S.season || {};
-  const stateCls = stateClass(season.state);
 
   /* Надписи, которые нужны скриптам поиска */
   const jsLabels = {
@@ -163,7 +157,6 @@ export function renderPage(ctx, doc) {
 <link rel="icon" href="/img/favicon-32.png" type="image/png">
 <link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
 <link rel="manifest" href="/manifest.webmanifest">
-<link rel="alternate" type="application/rss+xml" title="${esc(L('news.rss_title', S.site_title))}" href="/rss.xml">
 <link rel="preload" as="font" type="font/woff2" href="/fonts/cormorant-600-n-cyrillic.woff2" crossorigin>
 <link rel="preload" as="font" type="font/woff2" href="/fonts/ptserif-400-n-cyrillic.woff2" crossorigin>
 <link rel="stylesheet" href="/css/fonts.css">
@@ -204,15 +197,6 @@ ${SPRITE_SLOT}
         ${icon('i-search')}<span>${esc(L('nav.search_button', 'Поиск по сайту'))}</span><kbd>/</kbd>
       </button>
       <a class="sidebar__search" href="/library/" style="text-decoration:none">${icon('i-book')}<span>Мой справочник</span></a>
-
-      <a class="season ${stateCls}" href="${exists('/season/') ? '/season/' : '/#season-name'}">
-        <span class="season__dot" aria-hidden="true"></span>
-        <span class="season__body">
-          <span class="season__label">${esc(L('nav.season_word', 'Сезон'))} ${
-            esc(season.number ?? '')} · ${esc(season.state_label || '')}</span>
-          <span class="season__year">${esc(season.year || '')}</span>
-        </span>
-      </a>
 
       <nav class="nav" aria-label="Основное меню">${navHtml(menu, doc.url, L)}</nav>
 
@@ -273,11 +257,10 @@ ${mobileDock(doc)}
 </div>
 
 <script>window.__BASE__ = ${JSON.stringify(BASE)}; window.__L = ${JSON.stringify(jsLabels)};</script>
-<script>window.__PAGE__ = ${JSON.stringify({url:doc.url,title:doc.title,kind:doc.kind,updated:doc.updated}).replace(/</g,'\\u003c')}; window.__MAPS__ = ${JSON.stringify(ctx.maps || []).replace(/</g,'\\u003c')};</script>
+<script>window.__PAGE__ = ${JSON.stringify({url:doc.url,title:doc.title,kind:doc.kind,updated:doc.updated}).replace(/</g,'\\u003c')};</script>
 <script src="/js/storage.js" defer></script>
 <script src="/js/app.js" defer></script>
 <script src="/js/companion.js" defer></script>
-${doc.category?.id === 'maps' ? '<script src="/js/maps.js" defer></script>' : ''}
 <script src="/js/offline.js" defer></script>
 </body>
 </html>`;

@@ -33,22 +33,39 @@ test('все внутренние ссылки опубликованных ст
   assert.deepEqual([...new Set(failures)], []);
 });
 
-test('каждая опубликованная страна содержит пять уникальных разделов и прежний текст', () => {
+test('технические материалы сохранены, каталоги и исходники лора не публикуются', () => {
   const index = JSON.parse(fs.readFileSync(path.join(dist, 'search-index.json'), 'utf8'));
-  const countries = index.filter(d => d.k === 'country');
-  assert.ok(countries.length > 0);
-  for (const country of countries) {
-    const html = fs.readFileSync(path.join(dist, country.u, 'index.html'), 'utf8');
-    for (const part of ['overview', 'commanders', 'army', 'equipment', 'resources']) {
-      assert.equal(html.split(`id="country-${part}"`).length - 1, 1, `${country.u}: ${part}`);
-    }
-    assert.ok(html.includes('class="prose"'), country.u);
+  const pages = index.filter(d => d.k === 'page');
+  const published = new Set(pages.map(d => d.u));
+  for (const route of [
+    '/rules/', '/mechanics/calendar/', '/mechanics/expansion/', '/mechanics/research/',
+    '/mechanics/resources/', '/mechanics/posts/', '/mechanics/metal/', '/mechanics/war/',
+  ]) assert.ok(published.has(route), route);
+  assert.ok(pages.every(d => ['rules', 'mechanics'].includes(d.category)));
+  for (const route of ['countries', 'news', 'wars', 'treaties', 'lore', 'maps', 'season']) {
+    assert.equal(fs.existsSync(path.join(dist, route)), false, route);
+    assert.equal(fs.existsSync(path.join(dist, 'content', route)), false, `content/${route}`);
   }
+  assert.equal(fs.existsSync(path.join(dist, 'rss.xml')), false);
+  assert.equal(fs.existsSync(path.join(dist, 'other', 'medrin-ii')), false);
+  assert.equal(fs.readdirSync(path.join(dist, 'content', 'pages')).length, pages.length);
+  const sitemap = fs.readFileSync(path.join(dist, 'sitemap.xml'), 'utf8');
+  const serialized = JSON.stringify(index) + sitemap;
+  assert.doesNotMatch(serialized, /\/(countries|news|wars|treaties|lore|maps|season)\//);
+  assert.doesNotMatch(serialized, /Медрин|Нотаир|Тан-Боро|Грейвульф/);
+  const uploads = fs.readdirSync(path.join(dist, 'img', 'uploads')).filter(f=>/\.(png|webp)$/.test(f)).sort();
+  for (const image of [
+    '9B54D04A-5CDA-4C10-B4AC-2CDD1E0B84AB-700.webp',
+    '9B54D04A-5CDA-4C10-B4AC-2CDD1E0B84AB.png',
+    'Без названия59_20261003162023-1100.webp',
+    'Без названия59_20261003162023-700.webp',
+    'Без названия59_20261003162023.webp',
+  ]) assert.ok(uploads.includes(image), image);
+  assert.ok(!uploads.some(f => f.includes('03EACD0B-73FA-44A7-9738-AFB338F54C67') || f.includes('Без названия60_20261025131426')));
 });
 
-test('поисковый индекс хранит конец длинных страниц и правителя страны', () => {
-  const text = documentSearchText({ kind: 'country', front: { ruler: 'Правитель Мирослав' },
-    html: '<p>' + 'Длинная хроника. '.repeat(300) + '</p><p>Завершающее событие</p>' });
-  assert.ok(text.includes('Завершающее событие'));
-  assert.ok(text.includes('Правитель Мирослав'));
+test('поисковый индекс хранит конец длинной технической страницы', () => {
+  const text = documentSearchText({ kind: 'page', front: {},
+    html: '<p>' + 'Описание механики. '.repeat(300) + '</p><p>Завершающее правило</p>' });
+  assert.ok(text.includes('Завершающее правило'));
 });
