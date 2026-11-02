@@ -57,24 +57,27 @@ test('связь стороны войны с досье работает при
   assert.match(html, /href="\/wars\/example\/"/);
 });
 
-test('главная показывает два технических раздела и личный справочник', () => {
+test('главная показывает разделы мира и личный справочник без старого сезона', () => {
   const html = fs.readFileSync(new URL('../dist/index.html', import.meta.url), 'utf8');
   assert.equal((html.match(/class="quick-grid"/g) || []).length, 1);
-  assert.match(html, /aria-label="Разделы справочника"/);
+  assert.match(html, /aria-label="Разделы мира"/);
   assert.match(html, /id="homeFavorites"/);
   assert.match(html, /id="continueReading"/);
-  assert.doesNotMatch(html, /season-brief|myCountrySelect|home-news|О мире|application\/rss\+xml/);
-  assert.doesNotMatch(html, /href="[^" ]*\/(countries|news|wars|treaties|lore|maps|season)\//);
+  assert.doesNotMatch(html, /class="season-brief|id="myCountrySelect"|class="home-news"/);
+  for (const section of ['rules','mechanics','lore','countries','maps','news','season']) {
+    assert.ok(html.includes(`/${section}/`), section);
+  }
 });
 
-test('CMS оставляет настройки и технические страницы, без сезонных полей и связей досье', () => {
+test('CMS сохраняет редакторы всех разделов для новых материалов', () => {
   const config = yaml.load(fs.readFileSync(new URL('../admin/config.yml', import.meta.url), 'utf8'));
-  assert.deepEqual(config.collections.map(c => c.name), ['settings', 'pages']);
+  assert.deepEqual(config.collections.map(c => c.name).sort(), ['settings', 'pages', 'countries', 'treaties', 'wars', 'news'].sort());
   const settings = config.collections.find(c => c.name === 'settings');
   assert.ok(settings.files.every(f => ['site', 'labels', 'home'].includes(f.name)));
-  assert.ok(!settings.files.find(f => f.name === 'site').fields.some(f => f.name === 'season'));
+  assert.equal(settings.files.find(f => f.name === 'site').fields.find(f => f.name === 'season').required, false);
   const pages = config.collections.find(c => c.name === 'pages');
   assert.equal(pages.fields.find(f => f.name === 'body').widget, 'markdown');
-  assert.ok(!pages.fields.some(f => f.name === 'map_points'));
-  assert.doesNotMatch(JSON.stringify(config), /"collection":"(countries|news|wars|treaties)"/);
+  assert.ok(pages.fields.some(f => f.name === 'map_points'));
+  const commanders = config.collections.find(c => c.name === 'countries').fields.find(f => f.name === 'commanders');
+  assert.ok(commanders.fields.find(f => f.name === 'status').options.some(o => o.value === ''));
 });

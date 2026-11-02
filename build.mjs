@@ -19,6 +19,7 @@ import yaml from './vendor/js-yaml.mjs';
 import { renderPage } from './templates/layout.mjs';
 import * as views from './templates/views.mjs';
 import { iconsPage } from './templates/icons-page.mjs';
+import { COUNTRY_SECTIONS } from './lib/country-data.mjs';
 import { plainText, documentSearchText } from './lib/search-data.mjs';
 import { libraryPage } from './templates/companion.mjs';
 
@@ -127,7 +128,7 @@ const CONTAINERS = {
   seal:  { cls: 'callout callout--seal',  icon: 'd-wax',   key: 'callouts.seal',  def: 'Важно'      },
   note:  { cls: 'callout callout--note',  icon: 'i-leaf',  key: 'callouts.note',  def: 'Заметка'    },
   warn:  { cls: 'callout callout--warn',  icon: 'i-seal',  key: 'callouts.warn',  def: 'Осторожно'  },
-  quote: { cls: 'callout callout--quote', icon: 'i-quill', key: 'callouts.quote', def: 'Цитата' },
+  quote: { cls: 'callout callout--quote', icon: 'i-quill', key: 'callouts.quote', def: 'Из хроники' },
 };
 
 /** Блоки вида  :::seal Заголовок … :::  превращаются в оформленные врезки. */
@@ -229,7 +230,7 @@ function readYaml(name) {
   } catch (e) {
     throw new Error(`Ошибка в файле content/${name}:\n    ${e.message}\n`
       + `    Подсказка: если в тексте есть двоеточие, возьмите значение в кавычки — `
-      + `intro: "Механики: основные понятия".`);
+      + `intro: "Карты: границы и земли".`);
   }
 }
 
@@ -238,9 +239,45 @@ function loadSettings() {
   // Подписи интерфейса живут отдельным файлом: так две страницы панели
   // не затирают правки друг друга.
   s.labels = { ...(s.labels || {}), ...(readYaml('labels.yml').labels || {}) };
-  s.categories = (s.categories || []).filter(c => ['rules', 'mechanics'].includes(c.id))
-    .map((c, i) => ({ icon: 'leaf', order: i, ...c }));
+  s.categories = (s.categories || []).map((c, i) => ({ icon: 'i-leaf', order: i, ...c }));
+  s.season = s.season || {};
   return s;
+}
+
+/* ═════════════════════ страховка разделов ═════════════════════
+   Разделы, которые сайт знает «в лицо»: у них особая раскладка адресов
+   («База» живёт в корне, страны и договоры — по /countries/…), поэтому,
+   если такой раздел исчез из настроек, его страницы нельзя просто свалить
+   в «Прочее» — поедут все адреса и старые ссылки перестанут открываться.
+   Раздел, которого нет в настройках, считается скрытым: из меню и с главной
+   он уходит (владелец удалил — значит удалил), но страницы остаются по своим
+   прежним адресам, а сборка вслух перечисляет, что стало не видно. */
+const CATEGORY_FALLBACKS = {
+  base:      { title: 'База',             icon: 'seal',
+               intro: 'С чего начать, как всё устроено и по каким правилам живёт мир.' },
+  lore:      { title: 'Сеттинг',          icon: 'leaf',
+               intro: 'История Эрциона, магия, народы и те, кто вершит судьбы.' },
+  maps:      { title: 'Карты',            icon: 'map',
+               intro: 'Как выглядит мир: границы, земли и то, что под ними.' },
+  countries: { title: 'Страны',           icon: 'banner',
+               intro: 'Досье держав, порядок вступления и реестр договоров.' },
+  mechanics: { title: 'Механики',         icon: 'scales',
+               intro: 'Правила экспансии, торговли, войн и исследований.' },
+  news:      { title: 'Новости и пресса', icon: 'quill',
+               intro: 'Что происходит в мире прямо сейчас и что пишут игроки.' },
+  season:    { title: 'Сезон',            icon: 'crown',
+               intro: 'Итоги, номинации и те, чьи имена остались в хронике.' },
+  rules:     { title: 'Правила',          icon: 'scroll',
+               intro: 'На чём держится игра и за что убирают из проекта.' },
+};
+const CATEGORY_ORDER = Object.keys(CATEGORY_FALLBACKS);
+
+/** Знакомые разделы, которых нет в настройках: страницы у них есть, а в меню их не будет. */
+function hiddenCategories(S, usedIds) {
+  return [...usedIds]
+    .filter(id => CATEGORY_FALLBACKS[id] && !S.categories.some(c => c.id === id))
+    .sort((a, b) => CATEGORY_ORDER.indexOf(a) - CATEGORY_ORDER.indexOf(b))
+    .map(id => ({ id, order: CATEGORY_ORDER.indexOf(id), hidden: true, ...CATEGORY_FALLBACKS[id] }));
 }
 
 /* ═════════════════════════ сборка ═════════════════════════ */
@@ -250,8 +287,28 @@ function build() {
   const S = loadSettings();
   L = makeL(S);
 
-  const pageFiles = readDir('pages').filter(x => !x.front.draft && ['rules', 'mechanics'].includes(x.front.category));
-  const catById = Object.fromEntries(S.categories.map(c => [c.id, c]));
+  const pageFiles = readDir('pages').filter(x => !x.front.draft);
+  const countryFiles = readDir('countries').filter(x => !x.front.draft);
+  const treatyFiles = readDir('treaties').filter(x => !x.front.draft);
+  const warFiles = readDir('wars').filter(x => !x.front.draft);
+  const newsFiles = readDir('news').filter(x => !x.front.draft);
+
+  /* Разделы, которых нет в настройках, разбираем до раскладки страниц:
+     в меню их не будет, но адреса страниц должны остаться прежними. */
+  const usedCats = new Set(pageFiles.map(x => x.front.category).filter(Boolean));
+  if (countryFiles.length || treatyFiles.length) usedCats.add('countries');
+  if (warFiles.length) usedCats.add('lore');
+  if (newsFiles.length) usedCats.add('news');
+  const hiddenCats = hiddenCategories(S, usedCats);
+
+  /* Обложка сезона. Если файл не загрузился или его переименовали, на главную
+     нельзя ставить битую картинку: панель нарисует узорную плашку, а сборка
+     скажет, чего не хватает. */
+  const lostCover = S.season.cover && imageMissing(S.season.cover) ? S.season.cover : null;
+  if (lostCover) S.season.cover = '';
+
+  const catById = Object.fromEntries([...S.categories, ...hiddenCats].map(c => [c.id, c]));
+  const orphans = [];
   const docs = [];
   /* Разделы, чьё «лицо» уже занято страницей: второй такой странице адрес
      раздела не отдаём — иначе одна молча затрёт другую. */
@@ -261,18 +318,30 @@ function build() {
 
   /* — обычные страницы — */
   for (const { file, abs, front, body } of pageFiles) {
-    const cat = catById[front.category];
-    if (!cat) throw new Error(`Для страницы ${file} не настроен раздел ${front.category}`);
+    let cat = catById[front.category];
+    if (!cat) {
+      // Раздел удалили или переименовали. Страницу НЕ теряем: складываем
+      // в раздел «Прочее», чтобы её можно было найти и перевесить в панели.
+      if (!catById.other) {
+        catById.other = { id: 'other', title: L('misc.orphan_category', 'Прочее'), icon: 'scroll',
+                          intro: 'Страницы, чей раздел был удалён или переименован.' };
+        S.categories.push(catById.other);
+      }
+      orphans.push(`${file} (категория «${front.category ?? '—'}»)`);
+      cat = catById.other;
+    }
     const slug = front.slug || slugify(front.title || path.basename(file, '.md'));
     /* Страница может быть лицом своего раздела: тогда она живёт прямо на его
-       адресе (/rules/), а отдельный «обзор раздела» сборка не рисует. */
-    const ownsCat = front.section_home === true && !catHomeTaken.has(cat.id);
-    if (front.section_home === true && !ownsCat) {
+       адресе (/rules/), а отдельный «обзор раздела» сборка не рисует. Для
+       страниц, потерявших раздел, это не работает — они и так лежат в «Прочем». */
+    const ownsCat = front.section_home === true && cat.id !== 'other' && !catHomeTaken.has(cat.id);
+    if (front.section_home === true && !ownsCat && cat.id !== 'other') {
       log(`  ⚠ ${file}: раздел «${cat.title}» уже представлен другой страницей — `
         + `эта осталась на обычном адресе.`);
     }
     if (ownsCat) catHomeTaken.add(cat.id);
     const urlPath = ownsCat ? `/${cat.id}/`
+      : cat.id === 'base' ? `/${slug}/`
       : `/${cat.id}/${slug}/`;
     const { html, toc } = polish(renderMarkdown(body));
     push({
@@ -283,6 +352,78 @@ function build() {
     });
   }
 
+  /* — страны — */
+  const countries = countryFiles.map(({ abs, front, body }) => {
+    const slug = front.slug || slugify(front.title);
+    const { html, toc } = polish(renderMarkdown(body), COUNTRY_SECTIONS.map(s => s.id));
+    const sections = COUNTRY_SECTIONS.map(s => ({ level: 2, text: s.title, id: s.id }));
+    return {
+      kind: 'country', title: front.title, slug, url: `/countries/${slug}/`,
+      category: catById.countries, order: Number(front.order ?? 100),
+      summary: front.summary || '', html, toc: [sections[0], ...toc, ...sections.slice(1)], updated: fileUpdated(abs, front), front,
+      readingTime: readingTime(plainText(html)),
+    };
+  }).sort((a, b) => a.order - b.order || a.title.localeCompare(b.title, 'ru'));
+  countries.forEach(push);
+
+  /* — договоры — */
+  const treaties = treatyFiles.map(({ abs, front, body }) => {
+    const slug = front.slug || slugify(front.title);
+    const { html, toc } = polish(renderMarkdown(body));
+    return {
+      kind: 'treaty', title: front.title, slug, url: `/treaties/${slug}/`,
+      category: catById.countries, summary: front.summary || '',
+      html, toc, updated: fileUpdated(abs, front), front,
+      readingTime: readingTime(plainText(html)),
+    };
+  });
+  treaties.forEach(push);
+
+  /* — войны и битвы — */
+  const wars = warFiles.map(({ abs, front, body }) => {
+    const slug = front.slug || slugify(front.title);
+    const { html, toc } = polish(renderMarkdown(body));
+    return {
+      kind: 'war', title: front.title, slug, url: `/wars/${slug}/`,
+      category: catById.lore, order: Number(front.order ?? 100),
+      summary: front.summary || '', html, toc, updated: fileUpdated(abs, front), front,
+      readingTime: readingTime(plainText(html)),
+    };
+  }).sort((a, b) => (a.order ?? 100) - (b.order ?? 100) || a.title.localeCompare(b.title, 'ru'));
+  wars.forEach(push);
+
+  /* — новости — */
+  const news = newsFiles.map(({ file, abs, front, body }) => {
+    const slug = front.slug || slugify(path.basename(file, '.md').replace(/^\d{4}-\d{2}-\d{2}-/, ''));
+    const { html, toc } = polish(renderMarkdown(body));
+    return {
+      kind: 'news', title: front.title, slug, url: `/news/${slug}/`,
+      category: catById.news, summary: front.summary || '',
+      date: front.date ? new Date(front.date) : fileUpdated(abs, front),
+      author: front.author || L('news.default_author', 'Хронист'), newsKind: front.kind || 'world',
+      html, toc, updated: fileUpdated(abs, front), front,
+      readingTime: readingTime(plainText(html)),
+    };
+  }).sort((a, b) => b.date - a.date);
+  news.forEach(push);
+
+  /* — служебные разделы-каталоги — */
+  const indexes = [
+    { kind: 'countries-index', title: L('countries.index_title', 'Досье стран'),
+      url: '/countries/', category: catById.countries, order: 20, inMenu: true,
+      summary: L('countries.index_menu_note', 'Все державы: правление, земли, союзы.') },
+    { kind: 'treaties-index', title: L('treaties.index_title', 'Реестр договоров'),
+      url: '/treaties/', category: catById.countries, order: 30, inMenu: true,
+      summary: L('treaties.index_menu_note', 'Пакты, союзы и то, что от них осталось.') },
+    { kind: 'wars-index', title: L('wars.index_title', 'Хроника войн и битв'),
+      url: '/wars/', category: catById.lore, order: 5, inMenu: true,
+      summary: L('wars.index_menu_note', 'Великие походы, восстания и военные конфликты.') },
+    { kind: 'news-index', title: L('news.index_title', 'Мировые новости'),
+      url: '/news/', category: catById.news, order: 10, inMenu: true,
+      summary: L('news.index_menu_note', 'Что происходит в мире прямо сейчас.') },
+  ];
+  indexes.forEach(i => push({ ...i, html: '', toc: [], updated: BUILD_TIME, front: {} }));
+
   /* — меню — */
   const menu = S.categories.map(cat => {
     const url = `/${cat.id}/`;
@@ -290,10 +431,10 @@ function build() {
       .filter(d => d.inMenu && d.category?.id === cat.id)
       .sort((a, b) => (a.order ?? 100) - (b.order ?? 100) || a.title.localeCompare(b.title, 'ru'))
       .map(d => ({ title: d.title, url: d.url, summary: d.summary }));
-    // Если страница уже стоит на адресе раздела (как правила),
+    // Если какая-то страница уже стоит на адресе раздела (каталог стран, лента новостей),
     // то отдельный «обзор раздела» не нужен — иначе получится две ссылки на одно и то же.
     return { ...cat, url, items, hasOwnHome: items.some(i => i.url === url) };
-  }).filter(c => c.items.length);
+  });
 
   /* — главная — */
   const homeAbs = path.join(CONTENT, 'home.md');
@@ -310,7 +451,13 @@ function build() {
   fs.rmSync(DIST, { recursive: true, force: true });
   fs.mkdirSync(DIST, { recursive: true });
 
-  const ctx = { S, menu, docs, maps: [], buildTime: BUILD_TIME, L };
+  const maps = docs.filter(d => d.kind === 'page' && d.category?.id === 'maps').map(d => ({
+    url: d.url, title: d.title, image: (d.html.match(/<img[^>]+src="([^"]+)"/) || [])[1] || '',
+    points: (Array.isArray(d.front.map_points) ? d.front.map_points : []).filter(p =>
+      p && countries.some(c => c.slug === p.country) && Number.isFinite(p.x) && Number.isFinite(p.y) && p.x >= 0 && p.x <= 100 && p.y >= 0 && p.y <= 100)
+      .map(p => ({ x:p.x, y:p.y, url:countries.find(c=>c.slug===p.country).url, title:countries.find(c=>c.slug===p.country).title })),
+  }));
+  const ctx = { S, menu, docs, countries, treaties, wars, news, maps, buildTime: BUILD_TIME, L };
   const write = (urlPath, html) => {
     const out = urlPath === '/'
       ? path.join(DIST, 'index.html')
@@ -331,12 +478,22 @@ function build() {
   }
 
   for (const d of docs) {
-    write(d.url, renderPage(ctx, { ...d, body: views.page(ctx, d) }));
+    let body;
+    if (d.kind === 'page') body = views.page(ctx, d);
+    else if (d.kind === 'country') body = views.country(ctx, d);
+    else if (d.kind === 'treaty') body = views.treaty(ctx, d);
+    else if (d.kind === 'war') body = views.war(ctx, d);
+    else if (d.kind === 'news') body = views.newsItem(ctx, d);
+    else if (d.kind === 'countries-index') body = views.countriesIndex(ctx);
+    else if (d.kind === 'treaties-index') body = views.treatiesIndex(ctx);
+    else if (d.kind === 'wars-index') body = views.warsIndex(ctx);
+    else if (d.kind === 'news-index') body = views.newsIndex(ctx);
+    write(d.url, renderPage(ctx, { ...d, body }));
   }
 
   write('/search/', renderPage(ctx, {
-    kind: 'search', title: L('search.page_title', 'Поиск по справочнику'), url: '/search/',
-    summary: L('search.page_note', 'Ищем по правилам и игровым механикам.'),
+    kind: 'search', title: L('search.page_title', 'Поиск по хронике'), url: '/search/',
+    summary: L('search.page_note', 'Ищем по всем страницам, странам, договорам и новостям.'),
     updated: BUILD_TIME, toc: [], body: views.searchPage(ctx),
   }));
 
@@ -350,14 +507,14 @@ function build() {
   fs.writeFileSync(path.join(DIST, '404.html'),
     renderPage(ctx, {
       kind: '404', title: L('notfound.title', 'Страница потерялась'), url: '/404.html',
-      summary: L('notfound.note', 'Такой страницы в справочнике нет.'), updated: BUILD_TIME, toc: [],
+      summary: L('notfound.note', 'Такой записи в хронике нет.'), updated: BUILD_TIME, toc: [],
       body: views.notFound(ctx),
     }), 'utf8');
 
   /* — поисковый индекс — */
   const index = [
     { u: '/', t: S.site_title, c: 'Главная', s: S.description || '', x: plainText(homeDoc.html) },
-    ...docs
+    ...docs.filter(d => d.kind !== 'countries-index' && d.kind !== 'treaties-index' && d.kind !== 'wars-index' && d.kind !== 'news-index')
       .map(d => ({
         u: d.url, t: d.title, c: d.category?.title || '', s: d.summary || '',
         h: (d.toc || []).map(x => x.text).join(' \u00b7 '),   // заголовки внутри страницы
@@ -368,11 +525,11 @@ function build() {
     /* Раздел, чей адрес занят настоящей страницей, в поиске уже есть — второй
        раз его не показываем, иначе в выдаче будут два одинаковых ответа. */
     ...menu.filter(c => !c.hasOwnHome)
-      .map(c => ({ u: c.url, t: c.title, c: 'Раздел', s: c.intro || '', x: '', k: 'category', category: c.id })),
+      .map(c => ({ u: c.url, t: c.title, c: 'Раздел', s: c.intro || '', x: '', k: 'category' })),
   ];
   fs.writeFileSync(path.join(DIST, 'search-index.json'), JSON.stringify(index), 'utf8');
 
-  /* — карта сайта и robots — */
+  /* — карта сайта, robots, RSS — */
   const base = (S.site_url || '').replace(/\/$/, '');
   const urls = [...new Set(['/', '/search/', '/library/', '/browse/', ...menu.map(c => c.url), ...docs.map(d => d.url)])];
   fs.writeFileSync(path.join(DIST, 'sitemap.xml'),
@@ -381,10 +538,20 @@ function build() {
   fs.writeFileSync(path.join(DIST, 'robots.txt'),
     `User-agent: *\nAllow: /\nSitemap: ${base}/sitemap.xml\n`, 'utf8');
 
-  /* — старые адреса «/other/…» ведут к оставшимся техническим страницам — */
+  const rssItems = news.slice(0, 20).map(n =>
+    `  <item><title>${esc(n.title)}</title><link>${base}${n.url}</link>`
+    + `<guid>${base}${n.url}</guid><pubDate>${n.date.toUTCString()}</pubDate>`
+    + `<description>${esc(n.summary)}</description></item>`).join('\n');
+  fs.writeFileSync(path.join(DIST, 'rss.xml'),
+    `<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0"><channel>\n`
+    + `  <title>${esc(L('news.rss_title', S.site_title + ' — новости'))}</title>\n  <link>${base}/news/</link>\n`
+    + `  <description>${esc(S.description || '')}</description>\n${rssItems}\n</channel></rss>\n`, 'utf8');
+
+  /* — страховка от старых адресов: «/base/…» и «/other/…» уводят на новый — */
   const aliasTo = new Map();
   for (const d of docs) {
     if (d.kind !== 'page') continue;
+    if (d.category?.id === 'base') aliasTo.set(`/base/${d.slug}/`, d);
     // Пока раздел был удалён, страница жила по адресу /other/…: он уже
     // разошёлся по ссылкам, поэтому оставляем переадресацию.
     aliasTo.set(`/other/${d.slug}/`, d);
@@ -410,13 +577,10 @@ function build() {
   // шпаргалка со значками — рисуется из того же спрайта, что и сайт
   fs.mkdirSync(path.join(DIST, 'admin'), { recursive: true });
   fs.writeFileSync(path.join(DIST, 'admin', 'icons.html'), iconsPage(S.site_title), 'utf8');
-  // Публикуем исходники только оставшихся технических материалов.
-  fs.mkdirSync(path.join(DIST, 'content', 'pages'), { recursive: true });
-  for (const file of ['home.md', 'settings.yml', 'labels.yml']) {
-    fs.copyFileSync(path.join(CONTENT, file), path.join(DIST, 'content', file));
-  }
-  for (const page of pageFiles) fs.copyFileSync(page.abs, path.join(DIST, 'content', 'pages', page.file));
-  // Один список адресов для избранного, прогресса чтения и офлайн-копий.
+  // сырой контент кладём рядом — пригодится для предпросмотра и резервной копии
+  copyDir(CONTENT, path.join(DIST, 'content'));
+
+  // Один список опубликованных адресов для истории, избранного и офлайн-копий.
   for (const file of ['sw.js', 'js/storage.js']) {
     const target = path.join(DIST, file);
     fs.writeFileSync(target, fs.readFileSync(target, 'utf8').replaceAll('__READABLE_PATHS__', JSON.stringify(docs.map(d => d.url))));
@@ -433,6 +597,30 @@ function build() {
   }
   const version = versionHash.digest('hex').slice(0,12);
   fs.writeFileSync(swPath, fs.readFileSync(swPath,'utf8').replaceAll('__CACHE_VERSION__', version));
+
+  if (hiddenCats.length) {
+    log(`\n  ⚠ Разделы удалены из настроек — из меню и с главной они убраны:`);
+    for (const cat of hiddenCats) {
+      const inCat = docs.filter(d => d.category?.id === cat.id);
+      log(`     «${cat.title}» — страниц осталось: ${inCat.length}`);
+      inCat.forEach(d => log(`        ${d.url}   ${d.title}`));
+    }
+    log('     (адреса не менялись, старые ссылки открываются, страницы находит поиск —');
+    log('      но из меню на них больше не попасть. Не нужны — удалите их в панели;');
+    log('      нужны — выберите им раздел из списка настроек.)');
+  }
+
+  if (lostCover) {
+    log(`\n  ⚠ Обложка сезона не найдена: ${lostCover}`);
+    log('     (панель сезона на главной обошлась узорной плашкой;');
+    log('      загрузите картинку заново в панели → Настройки → Статус сезона)');
+  }
+
+  if (orphans.length) {
+    log(`\n  ⚠ Страницы без раздела — сложены в «${L('misc.orphan_category', 'Прочее')}»:`);
+    orphans.forEach(o => log(`     ${o}`));
+    log('     (откройте страницу в панели и выберите ей существующий раздел)');
+  }
 
   const heavy = heavyImages();
   if (heavy.length) {
@@ -455,7 +643,7 @@ function build() {
 
   const pages = urls.length + 1;
   log(`\n  ✔ Собрано за ${Date.now() - t0} мс`);
-  log(`    страниц: ${pages}   технических материалов: ${docs.length}`);
+  log(`    страниц: ${pages}   стран: ${countries.length}   новостей: ${news.length}   договоров: ${treaties.length}`);
   log(`    результат: dist/\n`);
 }
 

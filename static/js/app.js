@@ -76,7 +76,8 @@ window.ercionInit = () => {
   const norm = s => String(s).toLowerCase().replace(/ё/g, 'е').replace(/[^\wа-я0-9\s-]/gi, ' ');
   const aliases = {лп:'легкая пехота',тп:'тяжелая пехота',кв:'кавалерия',лч:'лучники',ос:'осадные',ст:'степь',рв:'равнина',ск:'скалы',бл:'болота',лс:'лес'};
   const tokensFor = q => norm(q).split(/\s+/).filter(t=>t.length>1).flatMap(t=>(aliases[t]||t).split(' '));
-  let searchFilter = ['rules','mechanics'].includes(new URLSearchParams(location.search).get('type')) ? new URLSearchParams(location.search).get('type') : 'all';
+  const availableFilters = new Set([...document.querySelectorAll('[data-search-filter]')].map(el => el.dataset.searchFilter));
+  let searchFilter = availableFilters.has(new URLSearchParams(location.search).get('type')) ? new URLSearchParams(location.search).get('type') : 'all';
 
   const prepare = data =>
     data.map(d => ({ ...d, _t: norm(d.t), _s: norm(d.s || ''), _x: norm(d.x || ''),

@@ -31,13 +31,13 @@ const MIME={'.html':'text/html; charset=utf-8','.js':'text/javascript','.css':'t
     const page=await context.newPage();page.setDefaultTimeout(8000);page.on('pageerror',e=>errors.push(e.message));
     const goto=route=>page.goto(base+route,{waitUntil:'load'});
     const capture=async name=>{if(shots){fs.mkdirSync(shots,{recursive:true});await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));await page.screenshot({path:path.join(shots,name+'.png')});}};
-    await check('главная и нижнее меню содержат правила и механики',async()=>{
+    await check('главная и нижнее меню содержат все разделы и карты',async()=>{
       await goto('/');
       assert.equal(await page.locator('.mobile-dock a').count(),5);
-      assert.deepEqual(await page.locator('.quick-grid a').allTextContents(),['Правила','Механики']);
+      assert.deepEqual(await page.locator('.quick-grid a').allTextContents(),['Правила','Механики','Сеттинг и Лор','Государства','Картография','Новостные Свитки','Сезоны']);
       assert.equal(await page.locator('.season-brief,#myCountrySelect,.home-news').count(),0);
       assert.equal(await page.locator('.mobile-dock a').nth(1).getAttribute('href'),prefix+'/rules/');
-      assert.equal(await page.locator('.mobile-dock a').nth(2).getAttribute('href'),prefix+'/mechanics/');
+      assert.equal(await page.locator('.mobile-dock a').nth(2).getAttribute('href'),prefix+'/maps/');
       await capture('home-mobile');
     });
     await check('меню Ещё открывается и возвращает фокус',async()=>{
@@ -79,13 +79,27 @@ const MIME={'.html':'text/html; charset=utf-8','.js':'text/javascript','.css':'t
       await page.locator('.searchpage [data-search-filter="rules"]').click();
       await page.waitForSelector('#pageSearchResults .fres');
       assert.ok((await page.locator('#pageSearchResults .fres').evaluateAll(links=>links.map(a=>a.pathname))).every(u=>u.includes('/rules/')));
-      assert.equal(await page.locator('.searchpage [data-search-filter="country"],.searchpage [data-search-filter="news"]').count(),0);
+      assert.equal(await page.locator('.searchpage [data-search-filter="maps"],.searchpage [data-search-filter="news"]').count(),2);
       await capture('search-mobile');
     });
-    await check('старые страницы, исходники и карты отвечают 404',async()=>{
-      for(const route of ['/countries/','/countries/srebrno/','/news/','/wars/','/treaties/','/lore/','/maps/political/','/season/','/other/medrin-ii/','/content/countries/srebrno.md','/img/season-cover.webp']){
+    await check('сюжетные страницы и исходники прошлого сезона отвечают 404',async()=>{
+      for(const route of ['/countries/srebrno/','/lore/medrin-ii/','/season/lore/','/season/podv/','/season/location/','/other/medrin-ii/','/content/countries/srebrno.md','/img/season-cover.webp']){
         const response=await context.request.get(base+route);assert.equal(response.status(),404,route);
       }
+    });
+    await check('атлас открывает карты, увеличивает их и переключает изображения',async()=>{
+      await goto('/maps/physical/');
+      await page.locator('.map-open').click();
+      await page.waitForFunction(()=>document.getElementById('mapImage').naturalWidth>0 && document.getElementById('mapViewer').open);
+      assert.equal(await page.locator('#mapZoom').evaluate(e=>e.value),'100%');
+      await page.locator('#mapZoomIn').click();assert.equal(await page.locator('#mapZoom').evaluate(e=>e.value),'150%');
+      await page.locator('#mapReset').click();assert.equal(await page.locator('#mapZoom').evaluate(e=>e.value),'100%');
+      await page.locator('#mapSelect').selectOption('/maps/political/');
+      await page.waitForFunction(()=>document.getElementById('mapImage').naturalWidth>0 && document.getElementById('mapImage').alt==='Политическая карта');
+      assert.equal(await page.locator('.map-point').count(),0);
+      await capture('maps-mobile');
+      await page.locator('#mapSelect').selectOption('/maps/resources/');assert.match(await page.locator('#mapMessage').innerText(),/пока не опубликована/);
+      await page.locator('#mapViewer [data-close-dialog]').click();
     });
     await check('офлайн: сохранение, чтение, библиотека и удаление',async()=>{
       await goto('/mechanics/war/');await page.evaluate(()=>navigator.serviceWorker.ready);
@@ -162,7 +176,8 @@ const MIME={'.html':'text/html; charset=utf-8','.js':'text/javascript','.css':'t
     await check('правила, механики и ссылки доступны без JavaScript',async()=>{
       const nojs=await browser.newContext({javaScriptEnabled:false,viewport:{width:390,height:844}}),p=await nojs.newPage();
       try{
-        await p.goto(base+'/');assert.equal(await p.locator('.quick-grid a').count(),2);
+        await p.goto(base+'/');assert.equal(await p.locator('.quick-grid a').count(),7);
+        await p.locator('.quick-grid').scrollIntoViewIfNeeded();
         await p.locator('.quick-grid a').first().click();assert.match(p.url(),/\/rules\/$/);
         await p.goto(base+'/mechanics/war/');assert.equal(await p.locator('.prose table').count(),4);
         assert.equal(await p.locator('.prose img').count(),0);

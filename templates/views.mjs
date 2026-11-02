@@ -568,7 +568,7 @@ export function searchPage(ctx) {
            aria-label="${esc(L('search.page_title', 'Поиск по сайту'))}"
            autocomplete="off" spellcheck="false" enterkeyhint="search">
   </div>
-  ${searchFilters()}
+  ${searchFilters(ctx)}
   <div id="pageSearchResults" class="finder__results finder__results--page" aria-live="polite">
     <p class="finder__hint">${esc(L('nav.search_hint', 'Начните печатать.'))}</p>
   </div>

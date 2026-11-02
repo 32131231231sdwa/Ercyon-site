@@ -65,12 +65,13 @@ const mime = { '.html': 'text/html; charset=utf-8', '.yml': 'text/yaml; charset=
     }, { fixtures });
     const page = await context.newPage(), errors = [];
     page.setDefaultTimeout(8000);
+    page.setDefaultNavigationTimeout(30000);
     page.on('pageerror', error => errors.push(error.message));
     page.on('console', message => { if (message.type() === 'error') console.error('CMS:', message.text().slice(0, 400)); });
     const base = `http://127.0.0.1:${server.address().port}${prefix}`;
     await page.goto(base + '/admin/', { waitUntil: 'load' });
     await page.getByRole('button', { name: /локальным репозиторием/i }).click();
-    await page.getByText('Правила и механики', { exact: true }).first().click();
+    await page.getByText('Страницы', { exact: true }).first().click();
     const openPage = async () => {
       await page.getByText(/Исследования/).first().dblclick();
       await page.getByText('Заголовок', { exact: true }).first().waitFor();
@@ -129,13 +130,55 @@ const mime = { '.html': 'text/html; charset=utf-8', '.yml': 'text/yaml; charset=
     await save(value => value.front.summary === mobileSummary && value.body.includes(body));
     await page.reload(); await openPage();
     assert.equal(await field('summary').locator('textarea').inputValue(), mobileSummary);
-    assert.equal(await page.locator('section.field[data-key-path="map_points"]').count(), 0);
+    assert.equal(await page.locator('section.field[data-key-path="map_points"]').count(), 1);
     assert.deepEqual(errors, []);
     if (process.env.SCREENSHOT_DIR) {
       fs.mkdirSync(process.env.SCREENSHOT_DIR, { recursive: true });
       await page.screenshot({ path: path.join(process.env.SCREENSHOT_DIR, 'admin-mechanics-mobile.png') });
     }
     console.log('PASS мобильная панель сохраняет техническую страницу без ошибок JavaScript');
+
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.goto(base + '/admin/', { waitUntil: 'load' });
+    await page.getByText('Настройки', { exact: true }).first().click();
+    const openSettings = async () => {
+      await field('categories').or(field('site_title')).or(page.getByText('Основные настройки сайта', { exact: true })).first().waitFor();
+      if (!(await field('categories').count()) && !(await field('site_title').count())) {
+        await page.getByText('Основные настройки сайта', { exact: true }).first().dblclick();
+      }
+      await field('categories').scrollIntoViewIfNeeded();
+    };
+    await openSettings();
+    const menu = field('categories');
+    try {
+      await menu.getByRole('button', { name: /Добавить/i }).last().click();
+      await field('categories.7.id').locator('input').fill('custom-guide');
+      await field('categories.7.title').locator('input').fill('Проверочный раздел');
+    } catch (error) {
+      console.error('Menu buttons:', await menu.getByRole('button').evaluateAll(items=>items.map(e=>({text:e.textContent,label:e.getAttribute('aria-label'),controls:e.getAttribute('aria-controls')}))));
+      console.error('Menu fields:', await page.locator('[data-key-path^="categories"]').evaluateAll(items=>items.map(e=>({key:e.dataset.keyPath,text:e.textContent.slice(0,180)}))));
+      throw error;
+    }
+    const readSettings = () => page.evaluate(async () => {
+      const dir = await (await navigator.storage.getDirectory()).getDirectoryHandle('content');
+      return (await (await dir.getFileHandle('settings.yml')).getFile()).text();
+    });
+    await page.getByRole('button', { name: 'Сохранить', exact: true }).click();
+    let savedSettings;
+    for (let attempt = 0; attempt < 80; attempt++) {
+      try { savedSettings = yaml.load(await readSettings()); } catch (error) {
+        if (!/NotFoundError|NotReadableError/.test(error.message)) throw error;
+      }
+      if (savedSettings?.categories.some(c=>c.id==='custom-guide')) break;
+      await page.waitForTimeout(100);
+    }
+    assert.ok(savedSettings?.categories.some(c=>c.id==='custom-guide' && c.title==='Проверочный раздел'), 'Новый раздел сохраняется в settings.yml');
+    await page.reload();await openSettings();
+    assert.match(await field('categories').innerText(), /8\s*Разделы меню/);
+    const reopened = yaml.load(await readSettings());
+    assert.ok(reopened.categories.some(c=>c.id==='custom-guide' && c.title==='Проверочный раздел'));
+    assert.deepEqual(errors, []);
+    console.log('PASS новый раздел меню добавляется и сохраняется после обновления страницы');
   } finally {
     await browser?.close(); server.close(); server.closeAllConnections();
   }

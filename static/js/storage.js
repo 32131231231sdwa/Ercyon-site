@@ -17,7 +17,15 @@
     if (kept.length !== Object.keys(positions).length) write('positions', Object.fromEntries(kept));
   }
   const last = read('lastReading', null);
-  const obsolete = ['myCountry', 'countryTabs'];
+  const obsolete = [];
+  const myCountry = read('myCountry', '');
+  if (myCountry && !isReadable(myCountry)) obsolete.push('myCountry');
+  const tabs = read('countryTabs', {});
+  if (tabs && typeof tabs === 'object' && !Array.isArray(tabs)) {
+    const kept = Object.entries(tabs).filter(([url]) => isReadable(url));
+    if (!kept.length) obsolete.push('countryTabs');
+    else if (kept.length !== Object.keys(tabs).length) write('countryTabs', Object.fromEntries(kept));
+  }
   if (last && !isReadable(last.url)) obsolete.push('lastReading');
   for (const key of obsolete) { try { localStorage.removeItem(prefix + key); } catch { /* Хранилище может быть недоступно. */ } }
   let toastTimer;

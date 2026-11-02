@@ -2,7 +2,7 @@
   "name": "ercyon-site",
   "version": "1.1.0",
   "private": true,
-  "description": "Справочник правил и механик ролевого проекта Ercyon. Для сборки нужен Node.js.",
+  "description": "Вики ролевого проекта Ercyon: правила, механики, справочники и карты. Для сборки нужен Node.js.",
   "type": "module",
   "scripts": {
     "test": "node build.mjs && node --test",

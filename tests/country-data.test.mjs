@@ -52,12 +52,13 @@ test('поисковый текст включает воевод, отряды,
   }
 });
 
-test('CMS разрешает страницам только категории правил и механик', () => {
+test('CMS получает раздел страницы из настроек меню', () => {
   const config = yaml.load(fs.readFileSync(new URL('../admin/config.yml', import.meta.url), 'utf8'));
   const fields = config.collections.find(c => c.name === 'pages').fields;
   const category = fields.find(f => f.name === 'category');
-  assert.equal(category.widget, 'select');
-  assert.deepEqual(category.options.map(o => o.value), ['rules', 'mechanics']);
+  assert.equal(category.widget, 'relation');
+  assert.equal(category.collection, 'settings');
+  assert.equal(category.value_field, 'categories.*.id');
 });
 
 test('раненый командующий не помечается погибшим по символу в имени', () => {

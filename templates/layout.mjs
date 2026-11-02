@@ -249,7 +249,7 @@ ${mobileDock(doc)}
              autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
       <button class="finder__close" id="finderClose" aria-label="Закрыть поиск">${icon('i-close', 'ico')}</button>
     </div>
-    ${searchFilters()}
+    ${searchFilters(ctx)}
     <div class="finder__results" id="finderResults" aria-live="polite">
       <p class="finder__hint">${esc(jsLabels.hint)}</p>
     </div>
@@ -257,10 +257,11 @@ ${mobileDock(doc)}
 </div>
 
 <script>window.__BASE__ = ${JSON.stringify(BASE)}; window.__L = ${JSON.stringify(jsLabels)};</script>
-<script>window.__PAGE__ = ${JSON.stringify({url:doc.url,title:doc.title,kind:doc.kind,updated:doc.updated}).replace(/</g,'\\u003c')};</script>
+<script>window.__PAGE__ = ${JSON.stringify({url:doc.url,title:doc.title,kind:doc.kind,updated:doc.updated}).replace(/</g,'\\u003c')}; window.__MAPS__ = ${JSON.stringify(ctx.maps || []).replace(/</g,'\\u003c')};</script>
 <script src="/js/storage.js" defer></script>
 <script src="/js/app.js" defer></script>
 <script src="/js/companion.js" defer></script>
+${doc.category?.id === 'maps' ? '<script src="/js/maps.js" defer></script>' : ''}
 <script src="/js/offline.js" defer></script>
 </body>
 </html>`;

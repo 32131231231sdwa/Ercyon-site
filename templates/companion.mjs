@@ -1,22 +1,23 @@
 import { esc, humanDate } from '../build.mjs';
 import { icon } from './layout.mjs';
+import { mediaImage, imageSource } from './media.mjs';
 
-export function searchFilters() {
+export function searchFilters(ctx) {
   return `<div class="search-filters" role="group" aria-label="Где искать">
-    ${[['all','Всё'],['rules','Правила'],['mechanics','Механики']].map(([key,label]) =>
+    ${[['all','Всё'],...(ctx?.menu || []).map(c => [c.id,c.title])].map(([key,label]) =>
       `<button type="button" data-search-filter="${key}" aria-pressed="${key === 'all'}">${label}</button>`).join('')}
   </div>`;
 }
 
 export function mobileDock(doc) {
   return `<nav class="mobile-dock" aria-label="Быстрая навигация">
-    ${[['/','home','Главная'],['/rules/','scroll','Правила'],['/mechanics/','scales','Механики'],['/search/','search','Поиск'],['/browse/','menu','Ещё']].map(([href,symbol,title]) =>
+    ${[['/','home','Главная'],['/rules/','scroll','Правила'],['/maps/','map','Карты'],['/search/','search','Поиск'],['/browse/','menu','Ещё']].map(([href,symbol,title]) =>
       `<a href="${href}"${(href === '/' ? doc.url === '/' : doc.url.startsWith(href)) ? ' aria-current="page"' : ''}${href === '/browse/' ? ' id="moreNav" aria-controls="sidebar" aria-expanded="false"' : ''}>${icon('i-'+(symbol === 'home' ? 'book' : symbol))}<span>${title}</span></a>`).join('')}
   </nav>`;
 }
 
 export function readerTools(doc) {
-  if (doc.kind !== 'page') return '';
+  if (!['page','country','news','war','treaty'].includes(doc.kind)) return '';
   return `<div class="reader-tools" data-enhance hidden>
     ${doc.toc?.length ? '<button type="button" data-open-reader>☷ <span>Содержание</span></button>' : '<button type="button" data-open-reader>Аа <span>Чтение</span></button>'}
     <button type="button" id="favoritePage" aria-pressed="false">☆ <span>В избранное</span></button>
@@ -33,22 +34,32 @@ export function readerTools(doc) {
 }
 
 export function dashboard(ctx, doc) {
-  const { S, menu, docs } = ctx;
-  const changed = docs.slice().sort((a, b) => new Date(b.updated) - new Date(a.updated)).slice(0, 5);
-  const heading = doc.front?.intro_title || 'Правила и механики';
-  return `<header class="dashboard-head"><img src="/img/logo-128.webp" width="64" height="64" alt=""><div><p class="eyebrow">${esc(S.site_subtitle)}</p><h1>${esc(S.site_title)}</h1></div><a class="join-small" href="${esc(S.telegram_url)}" target="_blank" rel="noopener">Telegram ↗</a></header>
-  <section class="home-guide">${doc.front?.intro_text ? `<p>${esc(doc.front.intro_text)}</p>` : ''}</section>
-  <section class="home-world" aria-labelledby="home-world-title"><div class="section-heading"><h2 id="home-world-title">${esc(heading)}</h2></div><nav class="quick-grid" aria-label="Разделы справочника">${menu.map(c => `<a href="${c.url}">${icon('i-' + c.icon)}<span>${esc(c.title)}</span></a>`).join('')}</nav>${doc.html ? `<div class="prose">${doc.html}</div>` : ''}</section>
-  <section class="player-home" data-enhance hidden aria-label="Продолжение чтения"><a class="continue-card" id="continueReading" href="/rules/" hidden><span class="section-label">Продолжить чтение</span><strong></strong><span class="continue-detail"></span><span aria-hidden="true">Продолжить →</span></a></section>
+  const {S, menu, docs, countries, news} = ctx;
+  const s = S.season || {};
+  const changed = docs.filter(d=>['page','country','war','treaty','news'].includes(d.kind))
+    .sort((a,b)=>new Date(b.updated)-new Date(a.updated)).slice(0,5);
+  return `<header class="dashboard-head"><img src="/img/logo-128.webp" width="64" height="64" alt=""><div><p class="eyebrow">${esc(S.site_subtitle || 'Вики ролевого проекта')}</p><h1>${esc(S.site_title)}</h1></div><a class="join-small" href="${esc(S.telegram_url)}" target="_blank" rel="noopener">Вступить ↗</a></header>
+  ${s.number || s.title || imageSource(s.cover) ? `<section class="season-brief${imageSource(s.cover) ? ' season-brief--illustrated' : ''}" aria-labelledby="season-name">${mediaImage(s.cover, { className: 'season-brief__cover', eager: true })}<div class="season-brief__content"><div class="season-brief__top"><span class="eyebrow">Сезон ${esc(s.number || '')}</span><span class="pill pill--ok">${esc(s.state_label || '')}</span></div>
+    <h2 id="season-name">${esc(s.title || 'Хроника мира')}</h2><p>${esc(s.year || '')}${s.mode ? ` · ${esc(s.mode)}` : ''}</p>
+    ${s.deadline ? `<p class="turn-deadline">Ход сдаётся до: <strong>${esc(s.deadline)}</strong></p>` : ''}
+    ${s.note ? `<p>${esc(s.note)}</p>` : ''}
+  </div></section>` : ''}
+  <section class="player-home" data-enhance hidden aria-label="Мой справочник">
+    ${countries.length ? `<div class="player-card"><div class="section-label">Моя страна</div><label class="sr-only" for="myCountrySelect">Выберите свою страну</label><select id="myCountrySelect"><option value="">Выберите державу</option>${countries.map(c=>`<option value="${esc(c.url)}">${esc(c.title)}</option>`).join('')}</select><a class="btn btn--gold" id="myCountryLink" href="/countries/">Открыть досье</a></div>` : ''}
+    <a class="continue-card" id="continueReading" href="/countries/" hidden><span class="section-label">Продолжить чтение</span><strong></strong><span class="continue-detail"></span><span aria-hidden="true">Продолжить →</span></a>
+  </section>
   <section class="home-library" data-enhance hidden><div class="section-heading"><h2>Под рукой</h2><a href="/library/">Все сохранённые →</a></div><div id="homeFavorites" class="compact-list"><p class="muted">Отмечайте страницы звёздочкой — они появятся здесь.</p></div></section>
-  <section class="home-changes"><div class="section-heading"><h2>Обновления справочника</h2></div><div class="compact-list">${changed.map(d => `<a href="${d.url}" data-updated="${new Date(d.updated).toISOString()}"><span><strong>${esc(d.title)}</strong><small>${esc(d.category?.title || '')}</small></span><time datetime="${new Date(d.updated).toISOString()}">${humanDate(d.updated)}</time></a>`).join('')}</div></section>`;
+  <section class="home-changes"><div class="section-heading"><h2>Обновления хроники</h2></div><div class="compact-list">${changed.map(d=>`<a href="${d.url}" data-updated="${new Date(d.updated).toISOString()}"><span><strong>${esc(d.title)}</strong><small>${esc(d.category?.title || '')}</small></span><time datetime="${new Date(d.updated).toISOString()}">${humanDate(d.updated)}</time></a>`).join('')}</div></section>
+  ${news.length ? `<section class="home-news"><div class="section-heading"><h2>Последние вести</h2><a href="/news/">Все →</a></div><div class="compact-list">${news.slice(0,3).map(n=>`<a href="${n.url}"><span><strong>${esc(n.title)}</strong><small>${esc(n.summary)}</small></span></a>`).join('')}</div></section>` : ''}
+  <details class="home-about"><summary>О мире</summary>${doc.front?.intro_text ? `<p>${esc(doc.front.intro_text)}</p>` : ''}${s.about ? `<p>${esc(s.about)}</p>` : ''}${doc.html ? `<div class="prose">${doc.html}</div>` : ''}</details>
+  <section class="home-world" aria-labelledby="home-world-title"><div class="section-heading"><h2 id="home-world-title">Разделы мира</h2></div><nav class="quick-grid" aria-label="Разделы мира">${menu.map(c=>`<a href="${c.url}">${icon('i-'+c.icon)}<span>${esc(c.title)}</span></a>`).join('')}</nav></section>`;
 }
 
 export function libraryPage() {
   return `<header class="phead"><h1>Мой справочник</h1><p>Избранное и страницы, сохранённые на этом устройстве.</p></header>
   <noscript><p>Для сохранения страниц включите JavaScript.</p></noscript>
   <h2 class="h-sec">Избранное</h2><div class="compact-list" id="favoritesList"></div>
-  <h2 class="h-sec">Без интернета</h2><p class="muted">Копия содержит текст и оформление. Иллюстрации могут потребовать интернет. Дата каждой копии указана ниже.</p><div class="compact-list" id="offlineList" role="status">Проверяем сохранённые страницы…</div>
+  <h2 class="h-sec">Без интернета</h2><p class="muted">Копия содержит текст и оформление. Карты и иллюстрации могут потребовать интернет. Дата каждой копии указана ниже.</p><div class="compact-list" id="offlineList" role="status">Проверяем сохранённые страницы…</div>
   <button type="button" class="btn btn--ghost" id="installApp" hidden>Добавить на главный экран</button>
   <details class="install-help"><summary>Как установить на телефон</summary><p>На iPhone: Safari → «Поделиться» → «На экран Домой». На Android: меню браузера → «Установить приложение» или «Добавить на главный экран».</p></details>`;
 }
