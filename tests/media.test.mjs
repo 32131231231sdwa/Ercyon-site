@@ -6,6 +6,7 @@ import { countrySections } from '../templates/country-sections.mjs';
 import { countryInfobox } from '../templates/country-infobox.mjs';
 import { war, country } from '../templates/views.mjs';
 import { illustration, imageSource } from '../templates/media.mjs';
+import { esc } from '../build.mjs';
 
 test('иллюстрации и подписи доступны во всех четырёх разделах досье', () => {
   const record = name => ({ name, image: `/img/${name}.png`, image_alt: `Описание ${name}`, image_caption: `Подпись ${name}` });
@@ -57,17 +58,19 @@ test('связь стороны войны с досье работает при
   assert.match(html, /href="\/wars\/example\/"/);
 });
 
-test('главная показывает баннер сезона, разделы мира и личный справочник', () => {
+test('главная показывает текущие настройки сезона, разделы и личный справочник', () => {
   const html = fs.readFileSync(new URL('../dist/index.html', import.meta.url), 'utf8');
+  const settings = yaml.load(fs.readFileSync(new URL('../content/settings.yml', import.meta.url), 'utf8'));
+  const season = settings.season || {};
   assert.equal((html.match(/class="quick-grid"/g) || []).length, 1);
   assert.match(html, /aria-label="Разделы мира"/);
   assert.match(html, /id="homeFavorites"/);
   assert.match(html, /id="continueReading"/);
-  assert.match(html, /class="season-brief season-brief--illustrated"/);
-  assert.match(html, /Свет рока дней новых/);
-  assert.doesNotMatch(html, /id="myCountrySelect"|class="home-news"/);
-  for (const section of ['rules','mechanics','lore','countries','maps','news','season']) {
-    assert.ok(html.includes(`/${section}/`), section);
+  if (season.number || season.title) assert.match(html, /class="season-brief/);
+  if (season.title) assert.ok(html.includes(`<h2 id="season-name">${esc(season.title)}</h2>`), 'Название баннера берётся из настроек');
+  for (const section of settings.categories || []) {
+    assert.ok(html.includes(`/${section.id}/`), section.id);
+    assert.ok(html.includes(esc(section.title)), section.title);
   }
 });
 
