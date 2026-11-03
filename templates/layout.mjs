@@ -124,7 +124,7 @@ export function renderPage(ctx, doc) {
   const { S, menu, L } = ctx;
   const isHome = doc.url === '/';
   /* Какие адреса сборка действительно напишет: страницы и обзоры разделов. */
-  const exists = u => u === '/' || ctx.docs.some(d => d.url === u) || menu.some(c => c.url === u);
+  const exists = u => u === '/' || ctx.docs.some(d => d.url === u) || (ctx.categoryMenus || menu).some(c => c.url === u);
   const title = isHome
     ? `${S.site_title} — ${S.motto}`
     : `${doc.title} — ${S.site_title}`;

@@ -20,7 +20,7 @@ test('редактор добавляет произвольные раздел�
   assert.equal(category.value_field, 'categories.*.id');
 });
 
-test('новый раздел появляется в меню даже пустым, а его страницы публикуются и доступны офлайн', () => {
+test('новые и скрытые разделы сохраняют страницы, ссылки после переноса и офлайн-доступ', () => {
   const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'ercyon-menu-'));
   try {
     for (const name of ['build.mjs', 'vendor', 'lib', 'templates', 'content', 'static', 'admin', 'assets']) {
@@ -30,7 +30,8 @@ test('новый раздел появляется в меню даже пуст
     const settings = yaml.load(fs.readFileSync(settingsPath, 'utf8'));
     settings.categories.push({ id: 'custom-guide', title: 'Новый справочник', icon: 'book' }, { id: 'empty-guide', title: 'Пустой раздел', icon: 'leaf' });
     fs.writeFileSync(settingsPath, yaml.dump(settings));
-    fs.writeFileSync(path.join(fixture, 'content/pages/custom-guide.md'), '---\ntitle: Новый материал\ncategory: custom-guide\nslug: first-page\n---\nТекст нового справочника.\n');
+    fs.writeFileSync(path.join(fixture, 'content/pages/custom-guide.md'), '---\ntitle: Новый материал\ncategory: custom-guide\nslug: first-page\n---\n[Перенесённая статья](/former-guide/hidden-page/?source=guide#details)\n');
+    fs.writeFileSync(path.join(fixture, 'content/pages/hidden-guide.md'), '---\ntitle: Скрытый материал\ncategory: hidden-guide\nslug: hidden-page\n---\n<h2 id="details">Подробности</h2>\n');
     execFileSync(process.execPath, ['build.mjs'], { cwd: fixture, env: { ...process.env, BASE_PATH: '/Ercyon-site' }, stdio: 'pipe' });
     const dist = path.join(fixture, 'dist');
     const home = fs.readFileSync(path.join(dist, 'index.html'), 'utf8');
@@ -38,6 +39,11 @@ test('новый раздел появляется в меню даже пуст
     assert.match(home, /href="\/Ercyon-site\/empty-guide\/"/);
     assert.ok(fs.existsSync(path.join(dist, 'empty-guide/index.html')));
     assert.ok(fs.existsSync(path.join(dist, 'custom-guide/first-page/index.html')));
+    assert.ok(fs.existsSync(path.join(dist, 'hidden-guide/hidden-page/index.html')));
+    assert.ok(fs.existsSync(path.join(dist, 'hidden-guide/index.html')));
+    assert.ok(!home.includes('href="/Ercyon-site/hidden-guide/"'));
+    assert.ok(fs.readFileSync(path.join(dist, 'custom-guide/first-page/index.html'), 'utf8').includes('href="/Ercyon-site/hidden-guide/hidden-page/?source=guide#details"'));
+    assert.ok(fs.readFileSync(path.join(dist, 'former-guide/hidden-page/index.html'), 'utf8').includes('href="/Ercyon-site/hidden-guide/hidden-page/"'));
     const index = JSON.parse(fs.readFileSync(path.join(dist, 'search-index.json'), 'utf8'));
     assert.ok(index.some(d => d.u === '/custom-guide/first-page/'));
     for (const file of ['sw.js', 'js/storage.js']) assert.ok(fs.readFileSync(path.join(dist, file), 'utf8').includes('/custom-guide/first-page/'));

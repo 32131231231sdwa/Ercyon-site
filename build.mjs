@@ -22,6 +22,7 @@ import { iconsPage } from './templates/icons-page.mjs';
 import { COUNTRY_SECTIONS } from './lib/country-data.mjs';
 import { plainText, documentSearchText } from './lib/search-data.mjs';
 import { libraryPage } from './templates/companion.mjs';
+import { repairPageLinks } from './lib/page-links.mjs';
 
 const ROOT = path.dirname(url.fileURLToPath(import.meta.url));
 const CONTENT = path.join(ROOT, 'content');
@@ -272,12 +273,14 @@ const CATEGORY_FALLBACKS = {
 };
 const CATEGORY_ORDER = Object.keys(CATEGORY_FALLBACKS);
 
-/** Знакомые разделы, которых нет в настройках: страницы у них есть, а в меню их не будет. */
+/** Разделы с материалами, убранные из меню, сохраняют свои адреса. */
 function hiddenCategories(S, usedIds) {
+  const order = id => CATEGORY_ORDER.includes(id) ? CATEGORY_ORDER.indexOf(id) : CATEGORY_ORDER.length;
   return [...usedIds]
-    .filter(id => CATEGORY_FALLBACKS[id] && !S.categories.some(c => c.id === id))
-    .sort((a, b) => CATEGORY_ORDER.indexOf(a) - CATEGORY_ORDER.indexOf(b))
-    .map(id => ({ id, order: CATEGORY_ORDER.indexOf(id), hidden: true, ...CATEGORY_FALLBACKS[id] }));
+    .filter(id => typeof id === 'string' && /^[a-z0-9-]+$/.test(id) && !S.categories.some(c => c.id === id))
+    .sort((a, b) => order(a) - order(b) || a.localeCompare(b))
+    .map(id => ({ id, order: order(id), hidden: true,
+      ...(CATEGORY_FALLBACKS[id] || { title: id === 'archive' ? 'Архив' : id, icon: 'leaf', intro: '' }) }));
 }
 
 /* ═════════════════════════ сборка ═════════════════════════ */
@@ -425,7 +428,7 @@ function build() {
   indexes.forEach(i => push({ ...i, html: '', toc: [], updated: BUILD_TIME, front: {} }));
 
   /* — меню — */
-  const menu = S.categories.map(cat => {
+  const categoryMenus = [...S.categories, ...hiddenCats].map(cat => {
     const url = `/${cat.id}/`;
     const items = docs
       .filter(d => d.inMenu && d.category?.id === cat.id)
@@ -435,6 +438,7 @@ function build() {
     // то отдельный «обзор раздела» не нужен — иначе получится две ссылки на одно и то же.
     return { ...cat, url, items, hasOwnHome: items.some(i => i.url === url) };
   });
+  const menu = categoryMenus.filter(cat => !cat.hidden);
 
   /* — главная — */
   const homeAbs = path.join(CONTENT, 'home.md');
@@ -446,6 +450,8 @@ function build() {
     updated: fileUpdated(homeAbs, home.front), front: home.front,
     summary: S.description || '',
   };
+  const movedAliases = repairPageLinks([...docs, homeDoc], S.site_url);
+  if (movedAliases.size) log(`  → Обновлены ссылки на перенесённые страницы: ${movedAliases.size}`);
 
   /* — вывод — */
   fs.rmSync(DIST, { recursive: true, force: true });
@@ -457,7 +463,7 @@ function build() {
       p && countries.some(c => c.slug === p.country) && Number.isFinite(p.x) && Number.isFinite(p.y) && p.x >= 0 && p.x <= 100 && p.y >= 0 && p.y <= 100)
       .map(p => ({ x:p.x, y:p.y, url:countries.find(c=>c.slug===p.country).url, title:countries.find(c=>c.slug===p.country).title })),
   }));
-  const ctx = { S, menu, docs, countries, treaties, wars, news, maps, buildTime: BUILD_TIME, L };
+  const ctx = { S, menu, categoryMenus, docs, countries, treaties, wars, news, maps, buildTime: BUILD_TIME, L };
   const write = (urlPath, html) => {
     const out = urlPath === '/'
       ? path.join(DIST, 'index.html')
@@ -468,7 +474,7 @@ function build() {
 
   write('/', renderPage(ctx, { ...homeDoc, body: views.home(ctx, homeDoc) }));
 
-  for (const cat of menu) {
+  for (const cat of categoryMenus) {
     if (cat.hasOwnHome) continue;          // адрес раздела занят настоящей страницей
     write(cat.url, renderPage(ctx, {
       kind: 'category', title: cat.title, url: cat.url, category: cat,
@@ -531,7 +537,7 @@ function build() {
 
   /* — карта сайта, robots, RSS — */
   const base = (S.site_url || '').replace(/\/$/, '');
-  const urls = [...new Set(['/', '/search/', '/library/', '/browse/', ...menu.map(c => c.url), ...docs.map(d => d.url)])];
+  const urls = [...new Set(['/', '/search/', '/library/', '/browse/', ...categoryMenus.map(c => c.url), ...docs.map(d => d.url)])];
   fs.writeFileSync(path.join(DIST, 'sitemap.xml'),
     `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`
     + urls.map(u => `  <url><loc>${base}${u}</loc></url>`).join('\n') + `\n</urlset>\n`, 'utf8');
@@ -548,7 +554,7 @@ function build() {
     + `  <description>${esc(S.description || '')}</description>\n${rssItems}\n</channel></rss>\n`, 'utf8');
 
   /* — страховка от старых адресов: «/base/…» и «/other/…» уводят на новый — */
-  const aliasTo = new Map();
+  const aliasTo = new Map(movedAliases);
   for (const d of docs) {
     if (d.kind !== 'page') continue;
     if (d.category?.id === 'base') aliasTo.set(`/base/${d.slug}/`, d);
