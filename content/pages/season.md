@@ -1,8 +1,8 @@
 ---
 title: Сезон
-category: maps
+category: season
 order: 100
-section_home: false
+section_home: true
 slug: season
 summary: Характер сезона, эпоха, развитие.
 map_points: []
