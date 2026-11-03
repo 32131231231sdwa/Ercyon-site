@@ -1,12 +1,12 @@
 ---
 title: Карта ресурсов
-category: maps
+category: archive
 order: 30
 slug: resources
 summary: Распределение ресурсов и порядок их обозначения на карте.
 ---
 
-[![Карта Ресурсов ](/img/uploads/Без%20названия58_20261003161015-1100.webp)](https://claude.ai/artifact/CVG3eU6zMf8AoyPQ9T4Cdu)
+[![Карта Ресурсов](/img/uploads/Без%20названия58_20261003161015-1100.webp)](https://claude.ai/artifact/CVG3eU6zMf8AoyPQ9T4Cdu)
 
 ## Что на карте
 
