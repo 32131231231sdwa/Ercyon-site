@@ -1,6 +1,6 @@
 ---
 title: Номинации
-category: season
+category: archive
 order: 20
 slug: nominations
 summary: Десять наград, которые игроки раздают друг другу в Немые дни — от «Соляного пера» до «Пустой казны».
