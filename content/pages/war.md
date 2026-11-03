@@ -1,5 +1,5 @@
 ---
-title: Ведение Войн
+title: I. Ведение Войн
 category: mechanics
 order: 2
 slug: war
