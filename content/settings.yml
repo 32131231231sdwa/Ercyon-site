@@ -6,16 +6,14 @@ telegram_url: https://t.me/ErcionInfo
 telegram_label: Telegram проекта
 site_url: https://32131231231sdwa.github.io/Ercyon-site
 season:
-  number: 7
-  title: «Свет рока дней новых»
-  cover: /img/uploads/03EACD0B-73FA-44A7-9738-AFB338F54C67.webp
-  about: |-
-    Веет морской ветер по своей пустоши,
-    Зовя нас за собой, в дальний путь!
-  year: 1510 г.
-  mode: Открытый набор
-  state: idet
-  state_label: Активен
+  number: 1
+  title: «Musket, Steel, Truth»
+  cover: /img/uploads/8EC46228-EF7D-4414-AF1D-CBFFE5525EDC.jpeg
+  about: ''
+  year: 1601-й
+  mode: Подготовка
+  state: pauza
+  state_label: Подготовка
   deadline: ''
   note: ''
 categories:
@@ -43,8 +41,4 @@ categories:
     title: Новостные Свитки
     icon: quill
     intro: Порядок выпуска газет и новые сообщения проекта.
-  - id: season
-    title: Сезоны
-    icon: crown
-    intro: Устройство мира, порядок завершения сезона и номинации.
 footer_note: Эрцион — некоммерческий ролевой проект. Все составляющие и производные сюжета вымышлены.
