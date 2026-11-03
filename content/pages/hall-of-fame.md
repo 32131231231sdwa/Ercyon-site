@@ -1,6 +1,6 @@
 ---
 title: Зал славы
-category: season
+category: archive
 order: 30
 slug: hall-of-fame
 summary: Раздел для итогов и наград новых сезонов.
