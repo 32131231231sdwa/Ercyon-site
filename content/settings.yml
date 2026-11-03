@@ -17,6 +17,10 @@ season:
   deadline: ''
   note: ''
 categories:
+  - id: season
+    title: Сезон
+    icon: tower
+    intro: Об эпохе, её устоях и жизни.
   - id: rules
     title: Правила
     icon: scroll
