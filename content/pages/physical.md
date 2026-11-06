@@ -8,7 +8,7 @@ summary: Леса, фьорды, торфяные низины и Кривые �
 
 ## Что на карте
 
-![Физическая карта Эрциона](/img/uploads/%D0%91%D0%B5%D0%B7%20%D0%BD%D0%B0%D0%B7%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F58_20261003161015.webp)
+![Физическая карта Эрциона](/img/uploads/%D0%9A%D0%B0%D1%80%D1%82%D0%B0_20261106234819.png)
 
 <p class="map-actions">
   <a class="btn btn--ghost" href="/img/uploads/%D0%91%D0%B5%D0%B7%20%D0%BD%D0%B0%D0%B7%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F58_20261003161015.webp" target="_blank" rel="noopener">🔍 Открыть карту в полном размере (для приближения)</a>
