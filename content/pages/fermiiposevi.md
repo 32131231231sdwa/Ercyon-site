@@ -1,5 +1,5 @@
 ---
-title: VI. ФЕРМЫ И ПОСЕВЫ
+title: VI. Фермы и Посевы
 category: mechanics
 order: 6
 section_home: false
