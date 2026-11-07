@@ -1,7 +1,7 @@
 ---
 title: II. Набор Армии
 category: mechanics
-order: 100
+order: 2
 section_home: false
 slug: effective
 summary: ''
