@@ -1,7 +1,7 @@
 ---
 title: IV. Добыча Ресурсов
 category: mechanics
-order: 680
+order: 4
 section_home: false
 slug: dobytcharesov
 summary: Важное о добыче ресурсов
