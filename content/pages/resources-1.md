@@ -1,7 +1,7 @@
 ---
 title: III. Ресурсы
 category: mechanics
-order: 100
+order: 3
 section_home: false
 slug: resources
 summary: Всё важное про ресурсы.
