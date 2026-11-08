@@ -8,7 +8,7 @@ capital: Штатх
 founded: '1502'
 population: '120.000'
 flag: /img/uploads/Стяги_20261108105805.png
-coat_of_arms: /img/uploads/Без названия118_20261108105325.png
+coat_of_arms: /img/uploads/Photoroom_20261108_212716.png
 map: /img/uploads/Без названия119_20261108145510.png
 map_caption: Территория Кафенства
 flag_description: ''
