@@ -1,7 +1,7 @@
 ---
 title: VII. Артиллерия
 category: mechanics
-order: 100
+order: 7
 section_home: false
 slug: artyler
 summary: Всё про артиллерию.
