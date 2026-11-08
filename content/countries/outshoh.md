@@ -13,7 +13,7 @@ map: /img/uploads/Без названия119_20261108145510.png
 map_caption: Территория Кафенства
 flag_description: ''
 resources:
-  - Гематит (3)
+  - Гематит (3.4)
   - Пшеница* (2)
   - Торф (1)
   - Алмаз (1)
@@ -28,6 +28,7 @@ resources:
   - Цинк (2)
   - Рожь* (1)
   - Лён* (2)
+  - Лимонит (3.4)
 magic: ''
 status: active
 color: '#7C302B'
@@ -172,6 +173,16 @@ resource_stock:
     production: +0.2 (Рудник 2-го Уровня).
     consumption: Высокий
     location: 1. Латананх (Рудн. 2 Ур.);
+    notes: ''
+  - name: Лимонит (3.4)
+    image: /img/uploads/IMG_2430.jpeg
+    image_alt: ''
+    image_caption: ''
+    amount: null
+    unit: ''
+    production: +0.4 (Рудник 3-го Уровня).
+    consumption: Высокий
+    location: 1. Латананх (Рудн. 3 Ур.);
     notes: ''
   - name: Пшеница* (2)
     image: /img/uploads/IMG_2397.jpeg
