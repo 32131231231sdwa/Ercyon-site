@@ -32,7 +32,7 @@ magic: ''
 status: active
 color: '#7C302B'
 player: Куратор
-summary: ''
+summary: 'Потенциал гос-ва: 56,03%'
 commanders:
   - name: Огль шоу Тир
     title: Кафен всего Латананха
