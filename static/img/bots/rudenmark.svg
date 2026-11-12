@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320" role="img" aria-labelledby="title desc">
+  <title id="title">Походная корогва маркграфа Рудена</title>
+  <desc id="desc">Золотая крепостная башня над скрещёнными кирками на сланцевом поле.</desc>
+  <rect width="480" height="320" fill="#3f4a52"/>
+  <rect x="15" y="15" width="450" height="290" fill="none" stroke="#b08d4a" stroke-width="7"/>
+  <g fill="#d1b36c"><path d="M188 63h24v24h16V63h24v24h16V63h24v48h-10v73h-84v-73h-10ZM175 178h130v15H175Z"/></g>
+  <path d="M228 183v-42q12-20 24 0v42Z" fill="#3f4a52"/>
+  <g fill="none" stroke="#d1b36c" stroke-width="12" stroke-linecap="round"><path d="m160 261 139-74M320 261l-139-74"/></g>
+  <g fill="none" stroke="#e2dfd0" stroke-width="10" stroke-linecap="round"><path d="M265 181q27-1 42 30M215 181q-27-1-42 30"/></g>
+</svg>

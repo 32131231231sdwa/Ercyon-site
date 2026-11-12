@@ -4,6 +4,7 @@
   const stage=document.getElementById('mapStage'),canvas=document.getElementById('mapCanvas'),image=document.getElementById('mapImage');
   const selector=document.getElementById('mapSelect'),message=document.getElementById('mapMessage'),points=document.getElementById('mapPoints');
   const original=document.getElementById('mapOriginal'),zoomLabel=document.getElementById('mapZoom');
+  const legend=document.getElementById('mapLegend');
   let scale=1,fitScale=1,x=0,y=0,loaded=false,opener;
   const pointers=new Map();let gesture=null;
   const bound=(value,min,max)=>Math.max(min,Math.min(max,value));
@@ -19,13 +20,18 @@
   const zoom=(factor,cx=stage.clientWidth/2,cy=stage.clientHeight/2)=>{if(!loaded)return;const next=bound(scale*factor,fitScale,Math.max(1,fitScale*12));x=cx-(cx-x)*next/scale;y=cy-(cy-y)*next/scale;scale=next;paint();};
   const load=()=>{
     const map=maps.find(m=>m.url===selector.value);loaded=false;pointers.clear();gesture=null;points.replaceChildren();image.removeAttribute('src');canvas.hidden=true;
+    if(legend){legend.replaceChildren();legend.hidden=true;}
     original.hidden=!map?.image;
     if(!map?.image){message.textContent='Эта карта пока не опубликована. Выберите другую карту.';message.hidden=false;return;}
     message.hidden=false;message.textContent='Загружаем карту…';original.href=E.href(map.image);image.alt=map.title;
     image.onload=()=>{loaded=true;canvas.hidden=false;canvas.style.width=image.naturalWidth+'px';canvas.style.height=image.naturalHeight+'px';message.hidden=true;fit();};
     image.onerror=()=>{message.hidden=false;message.textContent='Карта не загрузилась. Проверьте соединение и выберите её ещё раз.';};
     image.src=E.href(map.image);
-    for(const point of map.points || []){const a=document.createElement('a');a.href=E.href(point.url);a.className='map-point';a.style.left=point.x+'%';a.style.top=point.y+'%';a.textContent=point.title;a.title='Открыть досье: '+point.title;points.append(a);}
+    for(const [index,point] of (map.points || []).entries()){
+      const a=document.createElement('a'),label=(index+1)+'. Открыть досье: '+point.title;
+      a.href=E.href(point.url);a.className='map-point';a.style.left=point.x+'%';a.style.top=point.y+'%';a.textContent=String(index+1);a.title=label;a.setAttribute('aria-label',label);points.append(a);
+      if(legend){const link=document.createElement('a'),number=document.createElement('span'),name=document.createElement('span');link.href=a.href;number.className='map-legend__number';number.textContent=String(index+1);name.textContent=point.title;link.append(number,name);legend.append(link);legend.hidden=false;}
+    }
   };
   const open=button=>{opener=button;dialog.showModal();load();};
   const action=document.createElement('button');action.type='button';action.className='btn btn--gold map-open';action.textContent='Открыть атлас на весь экран';action.onclick=()=>open(action);

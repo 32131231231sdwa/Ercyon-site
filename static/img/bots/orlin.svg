@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320" role="img" aria-labelledby="title desc">
+  <title id="title">Аббатская корогва Орлина</title>
+  <desc id="desc">Серебряный крест над раскрытой книгой на стально-синем поле.</desc>
+  <rect width="480" height="320" fill="#4a6076"/>
+  <rect x="15" y="15" width="450" height="290" fill="none" stroke="#b08d4a" stroke-width="7"/>
+  <path d="M226 49h28v39h38v28h-38v62h-28v-62h-38V88h38Z" fill="#e2dfd0"/>
+  <path d="M141 200q50-16 99 8 49-24 99-8v64q-50-16-99 8-49-24-99-8Z" fill="#e2dfd0" stroke="#d1b36c" stroke-width="5"/>
+  <g fill="none" stroke="#4a6076" stroke-width="4"><path d="M240 208v63M156 216q33-7 65 7M156 234q33-7 65 7M259 223q32-14 65-7M259 241q32-14 65-7"/></g>
+</svg>

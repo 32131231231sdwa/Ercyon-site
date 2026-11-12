@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320" role="img" aria-labelledby="title desc">
+  <title id="title">Корогва соляного цеха Сальмара</title>
+  <desc id="desc">Три серебряных соляных кристалла над золотыми волнами на морском поле.</desc>
+  <rect width="480" height="320" fill="#2f5d62"/>
+  <rect x="15" y="15" width="450" height="290" fill="none" stroke="#b08d4a" stroke-width="7"/>
+  <g fill="#e2dfd0" stroke="#f2eee0" stroke-width="3">
+    <path d="m240 58 39 53-39 53-39-53Z"/>
+    <path d="m163 106 33 45-33 45-33-45Z"/>
+    <path d="m317 106 33 45-33 45-33-45Z"/>
+  </g>
+  <g fill="none" stroke="#9caaa4" stroke-width="3"><path d="M240 58v106M201 111h78M163 106v90M130 151h66M317 106v90M284 151h66"/></g>
+  <g fill="none" stroke="#d1b36c" stroke-width="9" stroke-linecap="round"><path d="M105 222q22-17 45 0t45 0 45 0 45 0 45 0 45 0M105 252q22-17 45 0t45 0 45 0 45 0 45 0 45 0"/></g>
+</svg>

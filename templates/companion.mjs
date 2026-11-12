@@ -70,6 +70,7 @@ export function mapViewer(maps, current) {
     <div class="map-top"><label class="sr-only" for="mapSelect">Карта</label><select id="mapSelect">${maps.map(m=>`<option value="${esc(m.url)}"${m.url===current?' selected':''}>${esc(m.title)}</option>`).join('')}</select><button type="button" data-close-dialog aria-label="Закрыть карту">×</button></div>
     <p class="map-message" id="mapMessage" role="status"></p>
     <div class="map-stage" id="mapStage" tabindex="0" aria-label="Карта. Масштаб: плюс и минус; перемещение: стрелки."><div id="mapCanvas"><img id="mapImage" alt="" draggable="false"><div id="mapPoints"></div></div></div>
+    <nav class="map-legend" id="mapLegend" aria-label="Державы на карте" hidden></nav>
     <div class="map-controls"><button type="button" id="mapZoomOut" aria-label="Уменьшить карту">−</button><output id="mapZoom">100%</output><button type="button" id="mapZoomIn" aria-label="Увеличить карту">+</button><button type="button" id="mapReset">Целиком</button><a id="mapOriginal" href="${maps.find(m=>m.url===current)?.image || maps.find(m=>m.image)?.image || '/maps/'}" target="_blank" rel="noopener">Оригинал ↗</a></div>
     <p class="map-hint">Разведите два пальца для увеличения. Перетащите карту для перемещения.</p>
   </dialog>`;

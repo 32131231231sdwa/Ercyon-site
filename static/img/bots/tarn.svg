@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320" role="img" aria-labelledby="title desc">
+  <title id="title">Ханская корогва рода Тарн</title>
+  <desc id="desc">Золотая подкова под солнечным знаком на кирпично-красном поле.</desc>
+  <rect width="480" height="320" fill="#7c302b"/>
+  <rect x="15" y="15" width="450" height="290" fill="none" stroke="#b08d4a" stroke-width="7"/>
+  <g fill="none" stroke="#d1b36c" stroke-width="6" stroke-linecap="round"><path d="M240 45v12M240 119v12M197 88h12M271 88h12M210 58l9 9M261 109l9 9M210 118l9-9M261 67l9-9"/></g>
+  <circle cx="240" cy="88" r="23" fill="#d1b36c"/>
+  <path d="M177 151h34v62q0 37 29 37t29-37v-62h34v62q0 70-63 70t-63-70Z" fill="#d1b36c"/>
+  <g fill="#7c302b"><circle cx="194" cy="174" r="5"/><circle cx="194" cy="207" r="5"/><circle cx="207" cy="246" r="5"/><circle cx="286" cy="174" r="5"/><circle cx="286" cy="207" r="5"/><circle cx="273" cy="246" r="5"/></g>
+</svg>

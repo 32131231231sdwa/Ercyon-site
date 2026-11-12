@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320" role="img" aria-labelledby="title desc">
+  <title id="title">Общая походная корогва Вельских домов</title>
+  <desc id="desc">Серебряная ель над тремя золотыми волнами на тёмно-лесном поле.</desc>
+  <rect width="480" height="320" fill="#14352a"/>
+  <rect x="15" y="15" width="450" height="290" fill="none" stroke="#b08d4a" stroke-width="7"/>
+  <path d="m240 49 35 50h-18l40 49h-27l43 51H167l43-51h-27l40-49h-18Zm-10 148h20v20h-20Z" fill="#e2dfd0"/>
+  <g fill="none" stroke="#d1b36c" stroke-width="8" stroke-linecap="round"><path d="M127 233q19-15 38 0t38 0 38 0 38 0 38 0 38 0M127 254q19-15 38 0t38 0 38 0 38 0 38 0 38 0M127 275q19-15 38 0t38 0 38 0 38 0 38 0 38 0"/></g>
+</svg>
