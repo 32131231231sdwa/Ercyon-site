@@ -11,7 +11,7 @@ flag: /img/uploads/IMG_2514.png
 coat_of_arms: /img/uploads/Photoroom_20261113_200127.png
 map: /img/uploads/Без названия119_20261113200408.png
 map_caption: ''
-flag_description: Княжеская корогва дома Вельц — три золотых колоса на тёмно-зелёном поле.
+flag_description: ''
 resources:
   - Рожь* (3.2)
   - Овёс* (2)
