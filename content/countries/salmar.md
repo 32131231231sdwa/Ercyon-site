@@ -10,7 +10,7 @@ population: 112 000
 flag: /img/uploads/IMG_2521.png
 map: /img/uploads/Без названия119_20261113201128.png
 map_caption: ''
-flag_description: Корогва соляного цеха — три серебряных кристалла над золотыми волнами на морском поле.
+flag_description: ''
 resources:
   - Каменная соль (3.2)
   - Рожь* (1)
