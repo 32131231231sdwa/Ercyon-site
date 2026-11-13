@@ -1,0 +1,24 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "ercyon-bot",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-11-13",
+  "workers_dev": true,
+  "vars": {
+    "SITE_URL": "https://32131231231sdwa.github.io/Ercyon-site",
+    "BOT_USERNAME": "ErcionGay"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "ercyon-bot",
+      "database_id": "4c0acfd8-90b7-43bc-a98d-54d0f833315d",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "triggers": {
+    "crons": [
+      "* * * * *"
+    ]
+  }
+}

@@ -1,0 +1,8 @@
+# Copy this file to .dev.vars. Keep .dev.vars out of Git.
+BOT_TOKEN=""
+WEBHOOK_SECRET=""
+SETUP_CODE=""
+# Optional: comma-separated numeric Telegram IDs; otherwise use the setup link.
+ADMIN_IDS=""
+# Optional: needed only when a Cloudflare account has several accounts.
+CLOUDFLARE_ACCOUNT_ID=""
