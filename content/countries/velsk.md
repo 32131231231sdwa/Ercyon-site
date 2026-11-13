@@ -7,7 +7,9 @@ government: Союз поместных домов с выборным стар�
 capital: Вельск
 founded: '1568'
 population: 156 000
-flag: /img/bots/velsk.svg
+flag: /img/uploads/IMG_2523.png
+coat_of_arms: /img/uploads/IMG_2524.png
+map: /img/uploads/Без названия119_20261113201722.png
 map_caption: ''
 flag_description: Общая походная корогва трёх поместных домов — серебряная ель над тремя золотыми волнами на тёмно-лесном поле.
 resources:
