@@ -236,7 +236,7 @@ export function country(ctx, d) {
 <header class="phead phead--country" style="--flag:${esc(f.color || '#3E6B4F')}">
   <span class="phead__banner" aria-hidden="true">${icon('i-banner', 'ico ico--xl')}</span>
   <h1>${esc(d.title)}</h1>
-  ${d.summary ? `<details class="country-intro"><summary>О державе</summary><p class="phead__sub">${esc(d.summary)}</p></details>` : ''}
+  ${d.summary ? `<p class="phead__sub">${esc(d.summary)}</p>` : ''}
   <div class="phead__meta">
     <span class="pill pill--${st.cls}">${esc(st.label)}</span>
     ${d.readingTime ? `<span class="phead__time">${icon('i-clock', 'ico ico--sm')} ~${d.readingTime} мин чтения</span>` : ''}
