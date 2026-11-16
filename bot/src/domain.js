@@ -1,4 +1,4 @@
-export const YEAR_MS = 48 * 60 * 60 * 1000;
+export const YEAR_MS = 72 * 60 * 60 * 1000;
 export const SESSION_MS = 24 * 60 * 60 * 1000;
 
 export function readCalendar(row, now) {

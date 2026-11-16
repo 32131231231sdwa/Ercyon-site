@@ -199,11 +199,13 @@ test('a repeated Telegram update reuses the roll and does not send another messa
   assert.ok(f.sent[0].text.includes('куратор'));
 });
 
-test('calendar changes exactly at 48 hours and preserves a partial year while paused', () => {
+test('calendar changes exactly at 72 hours and preserves a partial year while paused', () => {
   const initial = { base_year: 1601, accumulated_ms: 0, anchor_ms: null, running: 0 };
   const started = changeCalendar(initial, 'start', 1000);
-  assert.equal(readCalendar(started, 1000 + YEAR_MS - 1).year, 1601);
-  assert.equal(readCalendar(started, 1000 + YEAR_MS).year, 1602);
+  const threeDays = 3 * 24 * 60 * 60 * 1000;
+  assert.equal(readCalendar(started, 1000 + threeDays - 1).year, 1601);
+  assert.equal(readCalendar(started, 1000 + threeDays).year, 1602);
+  assert.match(calendarText(started, 1000), /3 реальных суток = 1 игровой год/);
   const paused = changeCalendar(started, 'pause', 1000 + YEAR_MS / 2);
   assert.equal(readCalendar(paused, 1000 + 10 * YEAR_MS).remaining, YEAR_MS / 2);
   const resumed = changeCalendar(paused, 'start', 10 * YEAR_MS);

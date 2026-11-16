@@ -1,4 +1,4 @@
-import { esc, readCalendar } from './domain.js';
+import { esc, readCalendar, YEAR_MS } from './domain.js';
 
 export const BUTTONS = {
   rules: '📚 Правила и сайт', apply: '📝 Подать анкету', calendar: '🗓 Календарь',
@@ -98,7 +98,7 @@ export function calendarText(row, now) {
       timeZone: 'Europe/Moscow', dateStyle: 'long', timeStyle: 'short',
     }).format(new Date(row.anchor_ms))} МСК</b>.\nДо старта: <b>${duration(row.anchor_ms - now)}</b>.`
       : current.running ? `До ${current.year + 1} года: <b>${duration(current.remaining)}</b>.` : 'Отсчёт на паузе.') +
-    '\n\n2 реальных суток = 1 игровой год.';
+    `\n\n${YEAR_MS / (24 * 60 * 60 * 1000)} реальных суток = 1 игровой год.`;
 }
 export function calendarPanel(row, now) {
   return { text: calendarText(row, now), markup: inline([
