@@ -9,6 +9,7 @@ import { countryData, countrySearchText } from '../lib/country-data.mjs';
 import { dashboard, mapViewer, searchFilters } from './companion.mjs';
 import { heraldry } from './media.mjs';
 import { countryInfobox } from './country-infobox.mjs';
+import { calendarCard } from './calendar.mjs';
 
 const head = (title, sub) => `<header class="phead">
   <h1>${esc(title)}</h1>
@@ -21,6 +22,7 @@ const prose = html => `<div class="prose">${html}</div>`;
 
 const countryStatus = (L, key) => ({
   active:  { label: L('countries.status_active',  'Действует'),   cls: 'ok'  },
+  pending: { label: L('countries.status_pending', 'На рассмотрении'), cls: 'mid' },
   neutral: { label: L('countries.status_neutral', 'Нейтралитет'), cls: 'mid' },
   fallen:  { label: L('countries.status_fallen',  'Пала'),        cls: 'bad' },
 }[key] || { label: L('countries.status_active', 'Действует'), cls: 'ok' });
@@ -50,7 +52,8 @@ export function seasonPanel(ctx) {
   const facts = [
     [L('home.status_year',      'Сейчас в мире'),   s.year],
     [L('home.status_mode',      'Набор'),           s.mode],
-    [L('home.season_countries', 'Держав в игре'),   countries.length || ''],
+    [L('home.season_countries', 'Держав в игре'),   countries.filter(c => c.front.status !== 'pending').length || ''],
+    [L('home.season_pending', 'Заявок на рассмотрении'), countries.filter(c => c.front.status === 'pending').length || ''],
     [L('home.season_treaties',  'Договоров'),       treaties.length || ''],
     [L('home.season_news',      'Событий в хронике'), news.length || ''],
     [L('home.season_deadline',  'Ход сдаётся до'),  s.deadline],
@@ -107,6 +110,7 @@ export function page(ctx, d) {
   if (d.category?.id === 'maps') return head(d.title, d.summary)
     + mapViewer(ctx.maps || [], d.url) + prose(d.html);
   return head(d.title, d.summary)
+    + (d.url === '/mechanics/calendar/' ? calendarCard(ctx.S, true) : '')
     + prose(d.html);
 }
 

@@ -2,20 +2,22 @@ site_title: ЭРЦИОН
 site_subtitle: Вики ролевого проекта
 motto: Мир, правила и справочники
 description: 'Вики ролевого проекта «Эрцион»: правила, игровые механики, справочники и карты мира.'
-telegram_url: https://t.me/ErcionInfo
-telegram_label: Telegram проекта
+telegram_url: https://t.me/Ercyon
+telegram_label: Чат Эрциона
 site_url: https://32131231231sdwa.github.io/Ercyon-site
 season:
   number: 1
   title: '«Delta: Musket, Steel, Truth»'
   cover: /img/uploads/8EC46228-EF7D-4414-AF1D-CBFFE5525EDC.jpeg
-  about: ''
+  about: 'Продолжение «Delta: Musket, Steel, Truth». Короны, уделы и торговые пути в начале XVII века.'
   year: 1601-й
-  mode: Подготовка
+  mode: Открытый набор
   state: pauza
-  state_label: Подготовка
+  state_label: Старт назначен
   deadline: ''
-  note: ''
+  note: 'Начало: 18 ноября 2026, 20:00 МСК. Анкеты и уточнения — в организационной теме.'
+  starts_at: '2026-11-18T20:00:00+03:00'
+  calendar_url: https://ercyon-bot.ercyon-telegram-bot.workers.dev/calendar
 categories:
   - id: season
     title: Сезон

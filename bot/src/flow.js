@@ -21,7 +21,9 @@ export async function buildPlan(update, store, config, now, dependencies) {
   const privateChat = chat?.type === 'private';
   const menu = ui.keyboard(admin);
   const push = effect => effects.push(effect);
-  const say = (text, markup = menu, extra) => push(ui.send(chat.id, text, markup, extra));
+  const threadId = message?.message_thread_id ?? callback?.message?.message_thread_id;
+  const thread = !privateChat && Number.isSafeInteger(threadId) && threadId > 0 ? { message_thread_id: threadId } : {};
+  const say = (text, markup = privateChat ? menu : undefined, extra = {}) => push(ui.send(chat.id, text, markup, { ...thread, ...extra }));
   const clearSession = () => statements.push(store.clearSession(actor.id));
   const saveSession = (kind, data) => statements.push(store.saveSession(actor.id, kind, data, now));
   const panel = (content, target = callback) => push(target ? ui.edit(target, content.text, content.markup) : ui.send(chat.id, content.text, content.markup));

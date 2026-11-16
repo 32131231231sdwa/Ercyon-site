@@ -36,6 +36,7 @@ export function edit(callback, text, markup) {
 
 export function rules(base) {
   return inline([
+    [{ text: 'Продолжение 1601 года', url: base + '/season/launch/' }, { text: 'Реестр заявок', url: base + '/season/registry/' }],
     [{ text: 'Правила', url: base + '/rules/' }, { text: 'Механики', url: base + '/mechanics/' }],
     [{ text: 'Карта', url: base + '/maps/political/' }, { text: 'Государства', url: base + '/countries/' }],
     [{ text: 'Открыть сайт', url: base + '/' }],
@@ -93,7 +94,10 @@ function duration(ms) {
 export function calendarText(row, now) {
   const current = readCalendar(row, now);
   return `<b>Игровой календарь</b>\n\nГод: <b>${current.year}</b>\n` +
-    (current.running ? `До ${current.year + 1} года: <b>${duration(current.remaining)}</b>.` : 'Отсчёт на паузе.') +
+    (current.scheduled ? `Старт: <b>${new Intl.DateTimeFormat('ru-RU', {
+      timeZone: 'Europe/Moscow', dateStyle: 'long', timeStyle: 'short',
+    }).format(new Date(row.anchor_ms))} МСК</b>.\nДо старта: <b>${duration(row.anchor_ms - now)}</b>.`
+      : current.running ? `До ${current.year + 1} года: <b>${duration(current.remaining)}</b>.` : 'Отсчёт на паузе.') +
     '\n\n2 реальных суток = 1 игровой год.';
 }
 export function calendarPanel(row, now) {

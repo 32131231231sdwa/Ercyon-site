@@ -17,6 +17,7 @@ labels:
     status_year: Год по игре
     status_mode: Набор
     season_countries: Держав в игре
+    season_pending: Заявок на рассмотрении
     season_treaties: Договоров
     season_news: Событий в хронике
     season_deadline: Ход сдаётся до
@@ -33,6 +34,7 @@ labels:
     treaties_title: Договоры с участием державы
     wars_title: Военные конфликты с участием державы
     status_active: Действует
+    status_pending: На рассмотрении
     status_neutral: Нейтралитет
     status_fallen: Пала
     f_government: Правление

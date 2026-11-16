@@ -1,5 +1,5 @@
 import { Store } from './db.js';
-import { parseAdmins, sameSecret } from './domain.js';
+import { parseAdmins, readCalendar, sameSecret, YEAR_MS } from './domain.js';
 import { buildPlan } from './flow.js';
 import { telegramClient } from './telegram.js';
 
@@ -25,6 +25,21 @@ export function createWorker(options = {}) {
       const url = new URL(request.url);
       if (request.method === 'GET' && (url.pathname === '/' || url.pathname === '/health')) {
         return Response.json({ service: 'Ercyon Telegram bot', configured: Boolean(env.DB && env.BOT_TOKEN && env.WEBHOOK_SECRET) });
+      }
+      if (request.method === 'GET' && url.pathname === '/calendar') {
+        const headers = { 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
+        if (!env.DB) return Response.json({ error: 'Calendar unavailable' }, { status: 503, headers });
+        try {
+          const row = await new Store(env.DB).calendar(), now = clock();
+          if (!row) return Response.json({ error: 'Calendar unavailable' }, { status: 503, headers });
+          const current = readCalendar(row, now);
+          return Response.json({
+            year: current.year, state: current.scheduled ? 'scheduled' : current.running ? 'running' : 'paused',
+            year_ms: YEAR_MS, remaining_ms: current.remaining, as_of: new Date(now).toISOString(),
+            starts_at: current.scheduled ? new Date(row.anchor_ms).toISOString() : null,
+            next_year_at: row.running ? new Date((current.scheduled ? row.anchor_ms : now) + current.remaining).toISOString() : null,
+          }, { headers });
+        } catch { return Response.json({ error: 'Calendar unavailable' }, { status: 503, headers }); }
       }
       if (url.pathname !== '/webhook' || request.method !== 'POST') return text('Not found', 404);
       if (!sameSecret(request.headers.get('X-Telegram-Bot-Api-Secret-Token'), env.WEBHOOK_SECRET)) return text('Forbidden', 403);

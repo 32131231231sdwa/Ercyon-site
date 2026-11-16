@@ -144,6 +144,7 @@ export function renderPage(ctx, doc) {
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(desc)}">
+${(isHome || doc.url === '/mechanics/calendar/') && S.season?.calendar_url ? `<meta name="ercyon-calendar" content="${esc(S.season.calendar_url)}">` : ''}
 <meta name="theme-color" content="#14352A">
 <meta property="og:type" content="website">
 <meta property="og:title" content="${esc(title)}">
@@ -261,6 +262,7 @@ ${mobileDock(doc)}
 <script src="/js/storage.js" defer></script>
 <script src="/js/app.js" defer></script>
 <script src="/js/companion.js" defer></script>
+${(isHome || doc.url === '/mechanics/calendar/') && S.season?.calendar_url ? '<script src="/js/calendar.js" defer></script>' : ''}
 ${doc.category?.id === 'maps' ? '<script src="/js/maps.js" defer></script>' : ''}
 <script src="/js/offline.js" defer></script>
 </body>

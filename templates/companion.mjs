@@ -1,6 +1,7 @@
 import { esc, humanDate } from '../build.mjs';
 import { icon } from './layout.mjs';
 import { mediaImage, imageSource } from './media.mjs';
+import { calendarCard } from './calendar.mjs';
 
 export function searchFilters(ctx) {
   return `<div class="search-filters" role="group" aria-label="Где искать">
@@ -39,11 +40,13 @@ export function dashboard(ctx, doc) {
   const changed = docs.filter(d=>['page','country','war','treaty','news'].includes(d.kind))
     .sort((a,b)=>new Date(b.updated)-new Date(a.updated)).slice(0,5);
   return `<header class="dashboard-head"><img src="/img/logo-128.webp" width="64" height="64" alt=""><div><p class="eyebrow">${esc(S.site_subtitle || 'Вики ролевого проекта')}</p><h1>${esc(S.site_title)}</h1></div><a class="join-small" href="${esc(S.telegram_url)}" target="_blank" rel="noopener">Вступить ↗</a></header>
-  ${s.number || s.title || imageSource(s.cover) ? `<section class="season-brief${imageSource(s.cover) ? ' season-brief--illustrated' : ''}" aria-labelledby="season-name">${mediaImage(s.cover, { className: 'season-brief__cover', eager: true })}<div class="season-brief__content"><div class="season-brief__top"><span class="eyebrow">Сезон ${esc(s.number || '')}</span><span class="pill pill--ok">${esc(s.state_label || '')}</span></div>
-    <h2 id="season-name">${esc(s.title || 'Хроника мира')}</h2><p>${esc(s.year || '')}${s.mode ? ` · ${esc(s.mode)}` : ''}</p>
+  ${s.number || s.title || imageSource(s.cover) ? `<section class="season-brief${imageSource(s.cover) ? ' season-brief--illustrated' : ''}" aria-labelledby="season-name">${mediaImage(s.cover, { className: 'season-brief__cover', eager: true })}<div class="season-brief__content"><div class="season-brief__top"><span class="eyebrow">Сезон ${esc(s.number || '')}</span><span class="pill pill--mid" data-calendar-state>${esc(s.state_label || '')}</span></div>
+    <h2 id="season-name">${esc(s.title || 'Хроника мира')}</h2><p><span data-calendar-year>${esc(s.year || '')}</span>${s.mode ? ` · ${esc(s.mode)}` : ''}</p>
     ${s.deadline ? `<p class="turn-deadline">Ход сдаётся до: <strong>${esc(s.deadline)}</strong></p>` : ''}
     ${s.note ? `<p>${esc(s.note)}</p>` : ''}
   </div></section>` : ''}
+  ${docs.some(d => d.url === '/season/launch/') ? `<nav class="season-links" aria-label="Продолжение сезона"><a href="/season/launch/">Запуск 1601 года</a><a href="/season/registry/">Заявки и страны</a><a href="/season/play/">Как сделать ход</a></nav><p class="season-counts">Готовых владений: ${countries.filter(c => !['pending','fallen'].includes(c.front.status)).length} · Заявок на рассмотрении: ${countries.filter(c => c.front.status === 'pending').length}</p>` : ''}
+  ${calendarCard(S)}
   <section class="player-home" data-enhance hidden aria-label="Мой справочник">
     ${countries.length ? `<div class="player-card"><div class="section-label">Моя страна</div><label class="sr-only" for="myCountrySelect">Выберите свою страну</label><select id="myCountrySelect"><option value="">Выберите державу</option>${countries.map(c=>`<option value="${esc(c.url)}">${esc(c.title)}</option>`).join('')}</select><a class="btn btn--gold" id="myCountryLink" href="/countries/">Открыть досье</a></div>` : ''}
     <a class="continue-card" id="continueReading" href="/countries/" hidden><span class="section-label">Продолжить чтение</span><strong></strong><span class="continue-detail"></span><span aria-hidden="true">Продолжить →</span></a>

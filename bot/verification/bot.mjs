@@ -5,6 +5,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { createWorker } from '../src/worker.js';
 import { Store } from '../src/db.js';
 import { YEAR_MS, changeCalendar, readCalendar, rollD100 } from '../src/domain.js';
+import { calendarText } from '../src/ui.js';
 
 class Statement {
   constructor(db, sql, values = []) { this.db = db; this.query = sql; this.values = values; }
@@ -207,6 +208,81 @@ test('calendar changes exactly at 48 hours and preserves a partial year while pa
   assert.equal(readCalendar(paused, 1000 + 10 * YEAR_MS).remaining, YEAR_MS / 2);
   const resumed = changeCalendar(paused, 'start', 10 * YEAR_MS);
   assert.equal(readCalendar(resumed, 10 * YEAR_MS + YEAR_MS / 2).year, 1602);
+});
+
+test('a scheduled calendar waits for its anchor, then starts exactly on time and can be cancelled', () => {
+  const start = Date.parse('2026-11-18T17:00:00Z');
+  const row = { base_year: 1601, accumulated_ms: 0, anchor_ms: start, running: 1 };
+  const waiting = readCalendar(row, start - 1);
+  assert.equal(waiting.year, 1601);
+  assert.equal(waiting.elapsed, 0);
+  assert.equal(waiting.scheduled, true);
+  assert.equal(waiting.running, false);
+  assert.match(calendarText(row, start - 60_000), /Старт:.*18 ноября 2026.*20:00/s);
+  assert.equal(readCalendar(row, start).running, true);
+  assert.equal(readCalendar(row, start).scheduled, false);
+  assert.equal(readCalendar(row, start + YEAR_MS - 1).year, 1601);
+  assert.equal(readCalendar(row, start + YEAR_MS).year, 1602);
+  const cancelled = changeCalendar(row, 'pause', start - 1);
+  assert.equal(cancelled.anchor_ms, null);
+  assert.equal(readCalendar(cancelled, start + 10 * YEAR_MS).elapsed, 0);
+  const paused = changeCalendar(row, 'pause', start + YEAR_MS / 4);
+  assert.equal(readCalendar(paused, start + YEAR_MS * 10).remaining, YEAR_MS * 3 / 4);
+});
+
+test('the public calendar exposes only time, preserves pauses and never sends Telegram messages or writes updates', async () => {
+  const f = fixture();
+  const worker = createWorker({ now: f.time, fetch: async () => { throw new Error('Unexpected Telegram request'); } });
+  const read = () => worker.fetch(new Request('https://example.test/calendar'), { DB: f.db });
+  let response = await read();
+  assert.equal(response.headers.get('Access-Control-Allow-Origin'), '*');
+  assert.equal(response.headers.get('Cache-Control'), 'no-store');
+  let data = await response.json();
+  assert.deepEqual(Object.keys(data).sort(), ['as_of', 'next_year_at', 'remaining_ms', 'starts_at', 'state', 'year', 'year_ms']);
+  assert.equal(data.state, 'paused');
+  assert.equal(data.next_year_at, null);
+  const start = f.time() + 60_000;
+  f.db.sqlite.prepare('UPDATE calendar SET running = 1, anchor_ms = ?').run(start);
+  data = await (await read()).json();
+  assert.equal(data.state, 'scheduled');
+  assert.equal(data.starts_at, new Date(start).toISOString());
+  assert.equal(data.next_year_at, new Date(start + YEAR_MS).toISOString());
+  f.advance(60_000 + YEAR_MS);
+  data = await (await read()).json();
+  assert.equal(data.state, 'running');
+  assert.equal(data.year, 1602);
+  assert.equal(data.starts_at, null);
+  f.db.sqlite.prepare('UPDATE calendar SET running = 0, accumulated_ms = ?, anchor_ms = NULL').run(YEAR_MS / 2);
+  f.advance(YEAR_MS * 10);
+  data = await (await read()).json();
+  assert.equal(data.state, 'paused');
+  assert.equal(data.year, 1601);
+  assert.equal(data.remaining_ms, YEAR_MS / 2);
+  assert.equal(f.rows('SELECT * FROM updates').length, 0);
+  assert.equal(f.rows('SELECT * FROM outbox').length, 0);
+  assert.equal(f.sent.length, 0);
+  response = await worker.fetch(new Request('https://example.test/calendar'), {});
+  assert.equal(response.status, 503);
+  response = await worker.fetch(new Request('https://example.test/calendar', { method: 'POST' }), { DB: f.db });
+  assert.equal(response.status, 404);
+});
+
+test('forum commands answer in the same topic without a private reply keyboard and preserve the checked post', async () => {
+  const f = fixture();
+  const chat = { id: -1003798113359, type: 'supergroup', is_forum: true };
+  await f.post(f.message('/calendar@ercyon_test_bot', 1, chat, { message_thread_id: 82444 }));
+  assert.equal(f.sent.at(-1).message_thread_id, 82444);
+  assert.equal(f.sent.at(-1).reply_markup, undefined);
+  await f.post(f.message('/roll@ercyon_test_bot', 1, chat, { message_thread_id: 82444, reply_to_message: { message_id: 500 } }));
+  assert.equal(f.sent.at(-1).message_thread_id, 82444);
+  assert.equal(f.sent.at(-1).reply_parameters.message_id, 500);
+  assert.equal(f.sent.at(-1).reply_markup, undefined);
+  await f.post(f.message('/apply@ercyon_test_bot', 1, chat, { message_thread_id: 82654 }));
+  assert.equal(f.sent.at(-1).message_thread_id, 82654);
+  assert.equal(f.sent.at(-1).reply_markup.keyboard, undefined);
+  const count = f.sent.length;
+  await f.post(f.message('/roll@another_bot', 1, chat, { message_thread_id: 82444 }));
+  assert.equal(f.sent.length, count);
 });
 
 test('calendar starts paused, survives a new worker, and rejects player settings', async () => {

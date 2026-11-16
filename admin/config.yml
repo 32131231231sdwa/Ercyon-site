@@ -122,6 +122,16 @@ collections:
                 widget: text
                 required: false
                 hint: Одна строка внизу панели сезона
+              - name: starts_at
+                label: Назначенное начало
+                widget: string
+                required: false
+                hint: 'Дата для подписи на сайте, например 2026-11-18T20:00:00+03:00. Сам календарь управляется в боте.'
+              - name: calendar_url
+                label: Адрес общего календаря
+                widget: string
+                required: false
+                hint: Публичный адрес /calendar у бота. Сайт показывает год и состояние из этого источника.
             required: false
           - name: categories
             label: Разделы меню
@@ -293,6 +303,10 @@ collections:
                   - name: season_countries
                     label: 'Панель сезона: держав в игре'
                     widget: string
+                  - name: season_pending
+                    label: 'Панель сезона: заявок на рассмотрении'
+                    widget: string
+                    required: false
                   - name: season_treaties
                     label: 'Панель сезона: договоров'
                     widget: string
@@ -340,6 +354,10 @@ collections:
                   - name: status_active
                     label: 'Состояние: действует'
                     widget: string
+                  - name: status_pending
+                    label: 'Состояние: на рассмотрении'
+                    widget: string
+                    required: false
                   - name: status_neutral
                     label: 'Состояние: нейтралитет'
                     widget: string
@@ -686,6 +704,8 @@ collections:
         options:
           - label: Действует
             value: active
+          - label: На рассмотрении
+            value: pending
           - label: Нейтралитет
             value: neutral
           - label: Пала

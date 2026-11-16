@@ -2,13 +2,15 @@ export const YEAR_MS = 48 * 60 * 60 * 1000;
 export const SESSION_MS = 24 * 60 * 60 * 1000;
 
 export function readCalendar(row, now) {
+  const scheduled = Boolean(row.running && row.anchor_ms !== null && row.anchor_ms > now);
   const elapsed = Math.max(0, row.accumulated_ms +
     (row.running && row.anchor_ms !== null ? Math.max(0, now - row.anchor_ms) : 0));
   return {
     year: row.base_year + Math.floor(elapsed / YEAR_MS),
     elapsed,
     remaining: YEAR_MS - elapsed % YEAR_MS,
-    running: Boolean(row.running),
+    running: Boolean(row.running) && !scheduled,
+    scheduled,
   };
 }
 
